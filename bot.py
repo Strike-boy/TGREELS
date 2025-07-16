@@ -36,7 +36,7 @@ def start_bot():
     from aiogram import executor
     executor.start_polling(dp, skip_updates=True)
 
-if name == "main":
+if __name__ == "__main__":
     t = Thread(target=start_bot)
     t.start()
     port = int(os.environ.get("PORT", 10000))
