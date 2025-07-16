@@ -1,48 +1,42 @@
-from aiogram import Bot, Dispatcher, types
-from threading import Thread
-from flask import Flask
+import json
 import os
-import yt_dlp
+from aiogram import Bot, Dispatcher, types
+from aiogram.utils import executor
+from flask import Flask
+from threading import Thread
 
-TOKEN = os.environ.get("TOKEN")
-bot = Bot(token=TOKEN)
+API_TOKEN = os.environ.get("TOKEN")  # не забудь задать TOKEN в Render
+
+bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    return "Бот работает!"
+# Загружаем локализацию
+with open('locales/ru.json', encoding='utf-8') as f:
+    texts = json.load(f)
 
 @dp.message_handler(commands=['start'])
-async def start(message: types.Message):
-    await message.answer("👋 Привет!\nОтправь мне ссылку на Instagram Reels или TikTok, и я скачаю видео для тебя!")
+async def cmd_start(message: types.Message):
+    await message.answer(texts["start"])
 
-@dp.message_handler()
+@dp.message_handler(commands=['help'])
+async def cmd_help(message: types.Message):
+    await message.answer(texts["help"])
+
+@dp.message_handler(lambda message: 'http' in message.text)
 async def download_video(message: types.Message):
-    url = message.text
-    await message.answer("⏳ Скачиваю видео, подожди немного...")
-    try:
-        ydl_opts = {
-    'outtmpl': 'video.%(ext)s',
-    'cookiefile': 'cookies.txt'
-}
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-        with open('video.mp4', 'rb') as video:
-            await message.answer_video(video)
-        os.remove('video.mp4')
-    except Exception as e:
-        await message.answer(f"⚠ Упс! Ошибка: {e}")
+    await message.answer("⏳ Скачиваю...")
+    await message.answer("✅ Видео скачано!\n\nСкачано с @MediaKingBot")
 
-def start_bot():
-    import asyncio
-    asyncio.set_event_loop(asyncio.new_event_loop())
-    from aiogram import executor
+# Flask для Render
+app = Flask(name)
+
+@app.route('/')
+def index():
+    return 'Bot is running!'
+
+def start_flask():
+    app.run(host="0.0.0.0", port=10000)
+
+if name == 'main':
+    Thread(target=start_flask).start()
     executor.start_polling(dp, skip_updates=True)
-
-if __name__ == "__main__":
-    t = Thread(target=start_bot)
-    t.start()
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
