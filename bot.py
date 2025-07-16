@@ -3,13 +3,12 @@ from threading import Thread
 from flask import Flask
 import os
 import yt_dlp
-import asyncio
 
 TOKEN = os.environ.get("TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
-app = Flask(name)
+app = Flask(__name__)
 
 @app.route("/")
 def home():
@@ -17,7 +16,9 @@ def home():
 
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
-    await message.answer("👋 Привет!\nОтправь мне ссылку на Instagram, TikTok или Shorts – и я скачаю видео для тебя!")
+    await message.answer(
+        "👋 Привет!\nОтправь мне ссылку на Instagram Reels или TikTok, и я скачаю видео для тебя!"
+    )
 
 @dp.message_handler()
 async def download_video(message: types.Message):
@@ -30,18 +31,29 @@ async def download_video(message: types.Message):
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
-        with open('video.mp4', 'rb') as video:
-            await message.answer_video(video, caption="Скачано через MediaKing 🎬")
-        os.remove('video.mp4')
+        # Проверим, какой файл скачался
+        video_file = None
+        for ext in ('mp4', 'webm', 'mkv'):
+            filename = f'video.{ext}'
+            if os.path.exists(filename):
+                video_file = filename
+                break
+        if video_file:
+            with open(video_file, 'rb') as video:
+                await message.answer_video(video)
+            os.remove(video_file)
+        else:
+            await message.answer("⚠️ Упс! Видео не найдено после загрузки.")
     except Exception as e:
         await message.answer(f"⚠️ Упс! Ошибка: {e}")
 
 def start_bot():
+    import asyncio
     asyncio.set_event_loop(asyncio.new_event_loop())
     from aiogram import executor
     executor.start_polling(dp, skip_updates=True)
 
-if name == "main":
+if __name__ == "__main__":
     t = Thread(target=start_bot)
     t.start()
     port = int(os.environ.get("PORT", 10000))
