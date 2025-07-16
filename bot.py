@@ -24,8 +24,9 @@ async def download_video(message: types.Message):
     await message.answer("⏳ Скачиваю видео, подожди немного...")
     try:
         ydl_opts = {
-    'outtmpl': 'video_%(id)s.%(ext)s',
-    'cookiefile': 'cookies.txt'}
+    'outtmpl': 'video.%(ext)s',
+    'cookiefile': 'cookies.txt'
+}
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
         with open('video.mp4', 'rb') as video:
