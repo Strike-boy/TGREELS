@@ -8,7 +8,7 @@ TOKEN = os.environ.get("TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
-app = Flask(name)
+app = Flask(__name__)
 
 @app.route("/")
 def home():
