@@ -34,6 +34,7 @@ async def download_video(message: types.Message):
 
 def start_bot():
     import asyncio
+    
 asyncio.set_event_loop(asyncio.new_event_loop())    
     from aiogram import executor
     executor.start_polling(dp, skip_updates=True)
