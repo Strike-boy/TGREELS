@@ -1,177 +1,213 @@
+import os
+import json
+import time
+import hashlib
+import sqlite3
+import requests
 from aiogram import Bot, Dispatcher, types
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputFile
+from aiogram.utils import executor
 from threading import Thread
 from flask import Flask
-import os
-import yt_dlp
-import sqlite3
-import asyncio
+from yt_dlp import YoutubeDL
+from acrcloud.recognizer import ACRCloudRecognizer
+from datetime import datetime
 
-TOKEN = os.environ.get("TOKEN")
+TOKEN = os.getenv("TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
-app = Flask(__name__)
 
-# Инициализация базы
-def init_db():
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY,
-            language TEXT DEFAULT 'ru',
-            downloads INTEGER DEFAULT 0
-        )
-    ''')
-    conn.commit()
-    conn.close()
+# SQLite3
+conn = sqlite3.connect("bot_data.db", check_same_thread=False)
+cursor = conn.cursor()
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS downloads (
+    user_id INTEGER,
+    username TEXT,
+    video_url TEXT,
+    timestamp TEXT
+)
+""")
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY,
+    username TEXT,
+    download_count INTEGER DEFAULT 0
+)
+""")
+conn.commit()
 
-init_db()
-
-# Словари переводов
-texts = {
-    'start': {
-        'ru': "👋 Привет! Отправь мне ссылку на видео, и я скачаю его для тебя!",
-        'en': "👋 Hi! Send me a video link, and I'll download it for you!",
-        'ua': "👋 Привіт! Надішли мені посилання на відео, і я його скачаю для тебе!",
-        'de': "👋 Hallo! Schick mir einen Videolink, und ich lade es für dich herunter!"
-    },
-    'help': {
-        'ru': "/start - начать\n/languages - сменить язык\n/stats - статистика\n/about - о боте",
-        'en': "/start - start\n/languages - change language\n/stats - statistics\n/about - about bot",
-        'ua': "/start - почати\n/languages - змінити мову\n/stats - статистика\n/about - про бота",
-        'de': "/start - starten\n/languages - Sprache ändern\n/stats - Statistik\n/about - über Bot"
-    },
-    'about': {
-        'ru': "🤖 Я бот MediaKing! Скачиваю Reels, TikTok, Shorts и многое другое.",
-        'en': "🤖 I'm MediaKing bot! I download Reels, TikTok, Shorts and more.",
-        'ua': "🤖 Я бот MediaKing! Завантажую Reels, TikTok, Shorts та інше.",
-        'de': "🤖 Ich bin der MediaKing Bot! Ich lade Reels, TikTok, Shorts und mehr herunter."
-    },
-    'choose_lang': {
-        'ru': "Выбери язык:",
-        'en': "Choose your language:",
-        'ua': "Оберіть мову:",
-        'de': "Wähle deine Sprache:"
-    },
-    'stats': {
-        'ru': "📊 Ты скачал видео: ",
-        'en': "📊 You've downloaded videos: ",
-        'ua': "📊 Ви завантажили відео: ",
-        'de': "📊 Du hast Videos heruntergeladen: "
-    },
-    'downloading': {
-        'ru': "⏳ Скачиваю видео, подожди немного...",
-        'en': "⏳ Downloading video, please wait...",
-        'ua': "⏳ Завантажую відео, зачекай...",
-        'de': "⏳ Lade Video herunter, bitte warten..."
-    },
-    'error': {
-        'ru': "⚠️ Упс! Ошибка: ",
-        'en': "⚠️ Oops! Error: ",
-        'ua': "⚠️ Ой! Помилка: ",
-        'de': "⚠️ Ups! Fehler: "
-    }
+# ACRCloud конфигурация
+acr_config = {
+    'host': 'identify-ap-southeast-1.acrcloud.com',
+    'access_key': 'e48f0d7b2af6ccad4015b26d57d75903',
+    'access_secret': 'WTWOUirBwcIPMJY6vOHEXVKilaMviC8doHQKGgaV',
+    'timeout': 10
 }
+acr_recognizer = ACRCloudRecognizer(acr_config)
 
-def get_user_language(user_id):
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT language FROM users WHERE user_id = ?", (user_id,))
-    row = cursor.fetchone()
-    conn.close()
-    return row[0] if row else 'ru'
-
-def set_user_language(user_id, lang):
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    cursor.execute("UPDATE users SET language = ? WHERE user_id = ?", (lang, user_id))
-    conn.commit()
-    conn.close()
-
-def add_or_update_user(user_id):
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    cursor.execute("INSERT OR IGNORE INTO users (user_id) VALUES (?)", (user_id,))
-    conn.commit()
-    conn.close()
-
-def increment_downloads(user_id):
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    cursor.execute("UPDATE users SET downloads = downloads + 1 WHERE user_id = ?", (user_id,))
-    conn.commit()
-    conn.close()
-
-def get_downloads(user_id):
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT downloads FROM users WHERE user_id = ?", (user_id,))
-    row = cursor.fetchone()
-    conn.close()
-    return row[0] if row else 0
-
+# Flask
+app = Flask(__name__)
 @app.route("/")
 def home():
-    return "Бот работает!"
+    return "MediaKing работает!"
 
+# Языки
+LANGS = {
+    'ru': "Русский",
+    'en': "English",
+    'uk': "Українська",
+    'de': "Deutsch",
+    'uz': "O'zbek",
+    'kk': "Қазақ",
+    'ko': "한국어",
+    'tr': "Türkçe"
+}
+
+user_langs = {}
+
+# Кнопки
+def get_keyboard(lang='ru'):
+    share_btn = InlineKeyboardButton("📤 Поделиться ботом", switch_inline_query="")
+    return InlineKeyboardMarkup(row_width=1).add(share_btn)
+
+# Переводы
+def t(text, lang):
+    tr = {
+        'start': {
+            'ru': "👋 Привет! Отправь мне ссылку на видео или аудио, или отправь музыку — я найду оригинал!",
+            'en': "👋 Hi! Send me a video or audio link, or a music clip — I'll find the original!",
+            'uk': "👋 Привіт! Надішли мені посилання на відео або аудіо, або музику — я знайду оригінал!",
+            'de': "👋 Hallo! Sende mir einen Video-/Audiolink oder Musik – ich finde das Original!",
+            'uz': "👋 Salom! Menga video yoki audio havolasini yuboring, yoki musiqa – men asl nusxasini topaman!",
+            'kk': "👋 Сәлем! Маған бейне немесе аудио сілтеме жібер, не музыка – мен түпнұсқасын табамын!",
+            'ko': "👋 안녕하세요! 영상이나 오디오 링크, 음악을 보내주세요 – 원곡을 찾아드릴게요!",
+            'tr': "👋 Merhaba! Bana bir video/ses bağlantısı veya müzik gönder – orijinalini bulayım!"
+        },
+        'downloading': {
+            'ru': "⏳ Скачиваю видео...",
+            'en': "⏳ Downloading video...",
+            'uk': "⏳ Завантажую відео...",
+            'de': "⏳ Video wird heruntergeladen...",
+            'uz': "⏳ Video yuklanmoqda...",
+            'kk': "⏳ Видео жүктелуде...",
+            'ko': "⏳ 비디오 다운로드 중...",
+            'tr': "⏳ Video indiriliyor..."
+        },
+        'error': {
+            'ru': "⚠️ Ошибка: ",
+            'en': "⚠️ Error: ",
+            'uk': "⚠️ Помилка: ",
+            'de': "⚠️ Fehler: ",
+            'uz': "⚠️ Xato: ",
+            'kk': "⚠️ Қате: ",
+            'ko': "⚠️ 오류: ",
+            'tr': "⚠️ Hata: "
+        },
+        'recognized': {
+            'ru': "🎵 Найдена песня: ",
+            'en': "🎵 Recognized song: ",
+            'uk': "🎵 Знайдено пісню: ",
+            'de': "🎵 Erkannte Musik: ",
+            'uz': "🎵 Topilgan qoʻshiq: ",
+            'kk': "🎵 Табылған ән: ",
+            'ko': "🎵 인식된 노래: ",
+            'tr': "🎵 Tanınan şarkı: "
+        }
+    }
+    return tr[text][lang]
+
+# Команды
 @dp.message_handler(commands=['start'])
-async def start(message: types.Message):
-    add_or_update_user(message.from_user.id)
-    lang = get_user_language(message.from_user.id)
-    await message.answer(texts['start'][lang])
+async def cmd_start(message: types.Message):
+    user_langs[message.from_user.id] = 'ru'
+    await message.answer(t('start', 'ru'), reply_markup=get_keyboard('ru'))
+
+@dp.message_handler(commands=['stats'])
+async def stats(message: types.Message):
+    cursor.execute("SELECT COUNT(*) FROM downloads")
+    total = cursor.fetchone()[0]
+    cursor.execute("SELECT username, download_count FROM users ORDER BY download_count DESC LIMIT 3")
+    top = cursor.fetchall()
+    text = f"📊 Всего загрузок: {total}\n\n🥇 Топ 3 пользователя:\n"
+    for i, row in enumerate(top):
+        text += f"{i+1}. @{row[0]} — {row[1]} видео\n"
+    await message.answer(text)
+
+@dp.message_handler(commands=['settings'])
+async def settings(message: types.Message):
+    langs_buttons = [InlineKeyboardButton(LANGS[key], callback_data=f"lang:{key}") for key in LANGS]
+    kb = InlineKeyboardMarkup(row_width=2).add(*langs_buttons)
+    await message.answer("🌐 Выберите язык:", reply_markup=kb)
 
 @dp.message_handler(commands=['help'])
 async def help_cmd(message: types.Message):
-    lang = get_user_language(message.from_user.id)
-    await message.answer(texts['help'][lang])
+    await message.answer("ℹ️ Просто отправь ссылку на видео или аудио, либо загрузи файл — и я помогу тебе! 🎬🎵")
 
-@dp.message_handler(commands=['about'])
-async def about_cmd(message: types.Message):
-    lang = get_user_language(message.from_user.id)
-    await message.answer(texts['about'][lang])
+@dp.message_handler(commands=['feedback'])
+async def feedback(message: types.Message):
+    await message.answer("📣 Напиши отзыв или предложение прямо здесь — мы читаем всё!")
 
-@dp.message_handler(commands=['languages'])
-async def languages_cmd(message: types.Message):
-    lang = get_user_language(message.from_user.id)
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add("🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch")
-    await message.answer(texts['choose_lang'][lang], reply_markup=keyboard)
+@dp.callback_query_handler(lambda c: c.data.startswith("lang:"))
+async def change_lang(callback: types.CallbackQuery):
+    lang = callback.data.split(":")[1]
+    user_langs[callback.from_user.id] = lang
+    await callback.message.edit_text(t('start', lang), reply_markup=get_keyboard(lang))
 
-@dp.message_handler(commands=['stats'])
-async def stats_cmd(message: types.Message):
-    lang = get_user_language(message.from_user.id)
-    count = get_downloads(message.from_user.id)
-    await message.answer(f"{texts['stats'][lang]} {count}")
+@dp.message_handler(content_types=['text'])
+async def handle_text(message: types.Message):
+    lang = user_langs.get(message.from_user.id, 'ru')
+    url = message.text.strip()
+    if not url.startswith("http"):
+        await message.answer("⚠️ Введите ссылку на видео или отправьте аудиофайл.")
+        return
 
-@dp.message_handler(lambda m: m.text in ["🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch"])
-async def change_lang(message: types.Message):
-    lang_code = {'🇷🇺 Русский': 'ru', '🇺🇸 English': 'en', '🇺🇦 Українська': 'ua', '🇩🇪 Deutsch': 'de'}[message.text]
-    set_user_language(message.from_user.id, lang_code)
-    await message.answer("✅ Язык обновлен!", reply_markup=types.ReplyKeyboardRemove())
-
-@dp.message_handler()
-async def download_video(message: types.Message):
-    user_id = message.from_user.id
-    lang = get_user_language(user_id)
-    await message.answer(texts['downloading'][lang])
+    await message.answer(t('downloading', lang))
     try:
-        ydl_opts = {'outtmpl': 'video.%(ext)s', 'cookiefile': 'cookies.txt'}
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([message.text])
-        with open('video.mp4', 'rb') as video:
-            await message.answer_video(video)
-        os.remove('video.mp4')
-        increment_downloads(user_id)
-    except Exception as e:
-        await message.answer(f"{texts['error'][lang]} {e}")
+        ydl_opts = {
+            'outtmpl': 'video.%(ext)s',
+            'format': 'mp4/bestaudio',
+            'noplaylist': True,
+            'quiet': True,
+            'cookiefile': 'cookies.txt'
+        }
+        with YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+        file = next(f for f in os.listdir('.') if f.startswith("video"))
+        await bot.send_video(message.chat.id, InputFile(file), caption="Скачано с @MediaKingBot")
+        os.remove(file)
 
+        cursor.execute("INSERT INTO downloads VALUES (?, ?, ?, ?)", (message.from_user.id, message.from_user.username, url, str(datetime.now())))
+        cursor.execute("INSERT OR IGNORE INTO users(user_id, username) VALUES (?, ?) ", (message.from_user.id, message.from_user.username))
+        cursor.execute("UPDATE users SET download_count = download_count + 1 WHERE user_id = ?", (message.from_user.id,))
+        conn.commit()
+
+    except Exception as e:
+        await message.answer(t('error', lang) + str(e))
+
+@dp.message_handler(content_types=['audio', 'voice'])
+async def recognize_music(message: types.Message):
+    lang = user_langs.get(message.from_user.id, 'ru')
+    file = await message.audio.download(destination_file="music.mp3") if message.audio else await message.voice.download(destination_file="music.mp3")
+    result = acr_recognizer.recognize_by_file("music.mp3", 0)
+    os.remove("music.mp3")
+    data = json.loads(result)
+    if data['status']['msg'] == 'Success':
+        song = data['metadata']['music'][0]
+        reply = f"{t('recognized', lang)} {song['title']} - {song['artists'][0]['name']}"
+    else:
+        reply = "❌ Песня не найдена."
+    await message.answer(reply)
+
+# Запуск Flask и Telegram
 def start_bot():
+    import asyncio
     asyncio.set_event_loop(asyncio.new_event_loop())
-    from aiogram import executor
     executor.start_polling(dp, skip_updates=True)
 
-if __name__ == "__main__":
-    t = Thread(target=start_bot)
-    t.start()
+t = Thread(target=start_bot)
+t.start()
+
+if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
