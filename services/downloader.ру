@@ -2,13 +2,33 @@ import yt_dlp
 import os
 import uuid
 
-def download_video(url):
+def get_video_formats(url):
+    try:
+        with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+            info = ydl.extract_info(url, download=False)
+            formats = [
+                {
+                    'format_id': f['format_id'],
+                    'ext': f['ext'],
+                    'resolution': f.get('resolution') or f.get('height'),
+                    'filesize': f.get('filesize'),
+                    'url': url
+                }
+                for f in info['formats']
+                if f.get('vcodec') != 'none' and f.get('acodec') != 'none'
+            ]
+            return formats
+    except Exception as e:
+        print(f"Ошибка получения форматов: {e}")
+        return []
+
+def download_video_by_format(url, format_id):
     filename = f"{uuid.uuid4()}.mp4"
     output_path = os.path.join("downloads", filename)
 
     ydl_opts = {
         'outtmpl': output_path,
-        'format': 'bestvideo+bestaudio/best',
+        'format': format_id,
         'merge_output_format': 'mp4',
         'quiet': True
     }
