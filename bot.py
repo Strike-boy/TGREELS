@@ -365,19 +365,18 @@ async def history_command(message: types.Message):
         await message.answer("🕓 Твоя история:\n" + "\n".join(history[-5:]))
 
 # =============== ЗАПУСК БОТА ===============
-from flask import Flask
+from aiohttp import web
 import threading
 
-app = Flask(__name__)
+async def handle(request):
+    return web.Response(text="MediaKing bot is alive!")
 
-@app.route("/")
-def index():
-    return "MediaKing bot is running!"
+def keep_alive():
+    app = web.Application()
+    app.router.add_get("/", handle)
+    web.run_app(app, port=8080)
 
-def run_bot():
+if name == "main":
     print("🚀 Бот запущен...")
+    threading.Thread(target=keep_alive).start()
     executor.start_polling(dp, skip_updates=True)
-
-if __name__ == "__main__":
-    threading.Thread(target=run_bot).start()
-    app.run(host="0.0.0.0", port=8080)
