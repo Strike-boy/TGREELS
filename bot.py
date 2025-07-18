@@ -114,8 +114,8 @@ def get_downloads(user_id):
 def home():
     return "Бот работает!"
 
-@dp.message_handler(commands=['start'])
-async def start(message: types.Message):
+    @dp.message_handler(commands=['start'])
+    async def start(message: types.Message):
     add_or_update_user(message.from_user.id)
     lang = get_user_language(message.from_user.id)
     await message.answer(texts['start'][lang])
@@ -124,13 +124,13 @@ async def start(message: types.Message):
     lang = get_user_language(message.from_user.id)
     await message.answer(texts['help'][lang])
 
-@dp.message_handler(commands=['about'])
-async def about_cmd(message: types.Message):
+    @dp.message_handler(commands=['about'])
+    async def about_cmd(message: types.Message):
     lang = get_user_language(message.from_user.id)
     await message.answer(texts['about'][lang])
 
-@dp.message_handler(commands=['languages'])
-async def languages_cmd(message: types.Message):
+    @dp.message_handler(commands=['languages'])
+    async def languages_cmd(message: types.Message):
     lang = get_user_language(message.from_user.id)
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.add("🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch")
