@@ -7,6 +7,13 @@ from aiogram.utils import executor
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+
+from aiogram.dispatcher.filters.state import State, StatesGroup
+
+class AdminStates(StatesGroup):
+    waiting_for_user_id = State()
+    waiting_for_ban_id = State()
+    waiting_for_broadcast = State()
 from uuid import uuid4
 import aiohttp
 
