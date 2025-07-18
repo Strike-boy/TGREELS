@@ -366,19 +366,22 @@ async def history_command(message: types.Message):
 
 # =============== ЗАПУСК БОТА ===============
 from flask import Flask
-import threading
 from aiogram import executor
+import threading
 
 app = Flask(__name__)
 
-@app.route("/")
+@app.route('/')
 def index():
-    return "MediaKing bot is alive!"
+    return 'MediaKing is running!'
 
-def run_bot():
+def run_flask():
+    app.run(host="0.0.0.0", port=8080)
+
+if __name__ == '__main__':
+    # Flask в отдельном потоке
+    threading.Thread(target=run_flask).start()
+
+    # А тут уже bot polling — В ГЛАВНОМ потоке
     print("🚀 Бот запущен...")
     executor.start_polling(dp, skip_updates=True)
-
-if __name__ == "__main__":
-    threading.Thread(target=run_bot).start()
-    app.run(host="0.0.0.0", port=8080)
