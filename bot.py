@@ -15,5 +15,5 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 register_handlers(dp)
 
 # Запуск бота
-if name == 'main':
+if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
