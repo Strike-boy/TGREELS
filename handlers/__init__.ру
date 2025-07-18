@@ -1,4 +1,6 @@
 from .start import register_start_handlers
+from .download import register_download_handlers
 
 def register_handlers(dp):
     register_start_handlers(dp)
+    register_download_handlers(dp)
