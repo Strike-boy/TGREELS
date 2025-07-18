@@ -384,5 +384,5 @@ async def main():
     await start_web_server()
     await dp.start_polling()
 
-if name == "main":
+if __name__ == "__main__":
     asyncio.run(main())
