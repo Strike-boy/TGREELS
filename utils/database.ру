@@ -1,0 +1,21 @@
+from aiogram.types import Message
+
+# Пример простой базы данных в памяти
+users = {}
+
+def add_user(message: Message):
+    user_id = message.from_user.id
+    if user_id not in users:
+        users[user_id] = {
+            "id": user_id,
+            "name": message.from_user.full_name,
+            "downloads": [],
+            "language": message.from_user.language_code
+        }
+
+def log_download(user_id: int, file_info: dict):
+    if user_id in users:
+        users[user_id]["downloads"].append(file_info)
+
+def get_user_history(user_id: int):
+    return users.get(user_id, {}).get("downloads", [])
