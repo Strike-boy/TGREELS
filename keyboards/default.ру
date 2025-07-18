@@ -1,9 +1,15 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from translations.texts import texts
+from utils.language import LANGUAGES
 
-def get_main_keyboard(lang):
-    kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.add(KeyboardButton("🎬 Скачать видео"))
-    kb.add(KeyboardButton("⚙️ Настройки"), KeyboardButton("📊 Статистика"))
-    kb.add(KeyboardButton("📢 Поделиться ботом"))
-    return kb
+def get_main_menu(language_code="en"):
+    text = {
+        "en": ["📥 Download", "🆘 Help", "⚙️ Settings"],
+        "ru": ["📥 Скачать", "🆘 Помощь", "⚙️ Настройки"],
+        "uz": ["📥 Yuklab olish", "🆘 Yordam", "⚙️ Sozlamalar"]
+        # Добавь переводы остальных языков
+    }.get(language_code, ["📥 Download", "🆘 Help", "⚙️ Settings"])
+
+    buttons = [[KeyboardButton(text[0])],
+               [KeyboardButton(text[1]), KeyboardButton(text[2])]]
+    
+    return ReplyKeyboardMarkup(resize_keyboard=True).add(*sum(buttons, []))
