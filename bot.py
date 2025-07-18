@@ -120,7 +120,7 @@ async def start(message: types.Message):
     lang = get_user_language(message.from_user.id)
     await message.answer(texts['start'][lang])
     @dp.message_handler(commands=['help'])
-async def help_cmd(message: types.Message):
+    async def help_cmd(message: types.Message):
     lang = get_user_language(message.from_user.id)
     await message.answer(texts['help'][lang])
 
