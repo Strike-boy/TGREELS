@@ -1,16 +1,19 @@
-from aiogram import Bot, Dispatcher, types
-from aiogram.utils import executor
-from config import TOKEN
-from handlers import start
+from aiogram import Bot, Dispatcher, executor, types
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from config import BOT_TOKEN
+from handlers import register_handlers
 import logging
 
-bot = Bot(token=TOKEN)
-dp = Dispatcher(bot)
-
+# Включаем логирование
 logging.basicConfig(level=logging.INFO)
 
-# Регистрируем хендлеры
-start.register_handlers(dp)
+# Инициализация
+bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
+dp = Dispatcher(bot, storage=MemoryStorage())
 
-if __name__ == '__main__':
+# Регистрируем все хендлеры
+register_handlers(dp)
+
+# Запуск бота
+if name == 'main':
     executor.start_polling(dp, skip_updates=True)
