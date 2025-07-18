@@ -1,0 +1,17 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from utils.language import LANGUAGES
+
+def get_language_keyboard():
+    markup = InlineKeyboardMarkup(row_width=2)
+    for lang_code, lang_name in LANGUAGES.items():
+        markup.insert(InlineKeyboardButton(text=lang_name, callback_data=f"set_lang:{lang_code}"))
+    return markup
+
+def get_quality_keyboard():
+    markup = InlineKeyboardMarkup(row_width=2)
+    markup.add(
+        InlineKeyboardButton("🔽 360p", callback_data="set_quality:360p"),
+        InlineKeyboardButton("📺 720p", callback_data="set_quality:720p"),
+        InlineKeyboardButton("🖥 1080p", callback_data="set_quality:1080p")
+    )
+    return markup
