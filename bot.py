@@ -376,7 +376,7 @@ def keep_alive():
     app.router.add_get("/", handle)
     web.run_app(app, port=8080)
 
-if name == "main":
+if __name__ == "__main__":
     print("🚀 Бот запущен...")
     threading.Thread(target=keep_alive).start()
     executor.start_polling(dp, skip_updates=True)
