@@ -1,10 +1,9 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from translations.texts import texts
 
-main_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-main_keyboard.add(
-    KeyboardButton("📥 Скачать видео"),
-    KeyboardButton("⚙️ Настройки"),
-).add(
-    KeyboardButton("📊 Статистика"),
-    KeyboardButton("📨 Обратная связь")
-)
+def get_main_keyboard(lang):
+    kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    kb.add(KeyboardButton("🎬 Скачать видео"))
+    kb.add(KeyboardButton("⚙️ Настройки"), KeyboardButton("📊 Статистика"))
+    kb.add(KeyboardButton("📢 Поделиться ботом"))
+    return kb
