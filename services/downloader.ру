@@ -1,0 +1,22 @@
+import yt_dlp
+import os
+import uuid
+
+def download_video(url):
+    filename = f"{uuid.uuid4()}.mp4"
+    output_path = os.path.join("downloads", filename)
+
+    ydl_opts = {
+        'outtmpl': output_path,
+        'format': 'bestvideo+bestaudio/best',
+        'merge_output_format': 'mp4',
+        'quiet': True
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        try:
+            ydl.download([url])
+            return output_path
+        except Exception as e:
+            print(f"Ошибка при скачивании: {e}")
+            return None
