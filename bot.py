@@ -365,24 +365,20 @@ async def history_command(message: types.Message):
         await message.answer("🕓 Твоя история:\n" + "\n".join(history[-5:]))
 
 # =============== ЗАПУСК БОТА ===============
-from aiohttp import web
-import asyncio
+from flask import Flask
+import threading
+from aiogram import executor
 
-async def handle(request):
-    return web.Response(text="MediaKing bot is alive!")
+app = Flask(__name__)
 
-async def start_web_server():
-    app = web.Application()
-    app.router.add_get("/", handle)
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", 8080)
-    await site.start()
+@app.route("/")
+def index():
+    return "MediaKing bot is alive!"
 
-async def main():
+def run_bot():
     print("🚀 Бот запущен...")
-    await start_web_server()
-    await dp.start_polling()
+    executor.start_polling(dp, skip_updates=True)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    threading.Thread(target=run_bot).start()
+    app.run(host="0.0.0.0", port=8080)
