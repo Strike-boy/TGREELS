@@ -1,0 +1,18 @@
+from aiogram import types, Dispatcher
+from utils.acrcloud import recognize_music
+from utils.language import get_text
+
+async def audio_handler(message: types.Message):
+    lang = message.from_user.language_code or "en"
+    if not message.audio and not message.voice:
+        return await message.reply(get_text(lang, "send_audio"))
+
+    file = message.audio or message.voice
+    file_path = await message.bot.get_file(file.file_id)
+    file_bytes = await message.bot.download_file(file_path.file_path)
+    
+    result = recognize_music(file_bytes.read())
+    await message.reply(result or get_text(lang, "no_match"))
+
+def register_recognition(dp: Dispatcher):
+    dp.register_message_handler(audio_handler, content_types=["audio", "voice"])
