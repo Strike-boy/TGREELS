@@ -1,0 +1,8 @@
+from aiogram import types, Dispatcher
+from keyboards.default import main_keyboard
+
+async def cmd_start(message: types.Message):
+    await message.answer("👑 Добро пожаловать в MediaKing Bot!\n\nОтправь ссылку на видео или воспользуйся кнопками ниже.", reply_markup=main_keyboard)
+
+def register_handlers(dp: Dispatcher):
+    dp.register_message_handler(cmd_start, commands=["start"])
