@@ -1,0 +1,25 @@
+from aiogram import types
+from aiogram.dispatcher import Dispatcher
+from utils.db import get_user_count, get_download_stats
+from keyboards.default import get_main_menu
+from bot import ADMIN_ID
+
+async def statistics_handler(message: types.Message):
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    user_count = get_user_count()
+    download_stats = get_download_stats()
+
+    text = (
+        f"📊 <b>Статистика</b>\n\n"
+        f"👤 Пользователей: {user_count}\n"
+        f"📥 Всего загрузок: {download_stats['total']}\n"
+        f"🎵 Музыки: {download_stats['music']}\n"
+        f"🎬 Видео: {download_stats['video']}"
+    )
+
+    await message.answer(text, reply_markup=get_main_menu())
+
+def register_statistics(dp: Dispatcher):
+    dp.register_message_handler(statistics_handler, commands=["stats"], state="*")
