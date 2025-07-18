@@ -1,0 +1,19 @@
+from aiogram import types, Dispatcher
+from services.downloader import download_video
+import os
+
+async def handle_download(message: types.Message):
+    url = message.text.strip()
+
+    await message.answer("⏳ Загружаю видео...")
+
+    video_path = download_video(url)
+    if video_path:
+        with open(video_path, 'rb') as video:
+            await message.answer_video(video, caption="🎬 Вот ваше видео!")
+        os.remove(video_path)
+    else:
+        await message.answer("❌ Не удалось загрузить видео. Убедитесь, что ссылка корректна.")
+
+def register_download_handlers(dp: Dispatcher):
+    dp.register_message_handler(handle_download, content_types=types.ContentType.TEXT)
