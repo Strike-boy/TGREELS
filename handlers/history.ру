@@ -1,0 +1,10 @@
+from aiogram import types, Dispatcher
+from utils.language import get_text
+
+async def history_handler(message: types.Message):
+    lang = message.from_user.language_code or "en"
+    text = get_text(lang, "history")
+    await message.answer(text)
+
+def register_history(dp: Dispatcher):
+    dp.register_message_handler(history_handler, commands=["history"])
