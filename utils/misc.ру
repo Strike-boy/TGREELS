@@ -1,0 +1,12 @@
+from time import time
+
+# Антиспам (проверка времени последнего действия)
+user_last_action = {}
+
+def is_spamming(user_id: int, cooldown=3) -> bool:
+    now = time()
+    last = user_last_action.get(user_id, 0)
+    if now - last < cooldown:
+        return True
+    user_last_action[user_id] = now
+    return False
