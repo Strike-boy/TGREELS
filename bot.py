@@ -366,17 +366,23 @@ async def history_command(message: types.Message):
 
 # =============== ЗАПУСК БОТА ===============
 from aiohttp import web
-import threading
+import asyncio
 
 async def handle(request):
     return web.Response(text="MediaKing bot is alive!")
 
-def keep_alive():
+async def start_web_server():
     app = web.Application()
     app.router.add_get("/", handle)
-    web.run_app(app, port=8080)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", 8080)
+    await site.start()
 
-if __name__ == "__main__":
+async def main():
     print("🚀 Бот запущен...")
-    threading.Thread(target=keep_alive).start()
-    executor.start_polling(dp, skip_updates=True)
+    await start_web_server()
+    await dp.start_polling()
+
+if name == "main":
+    asyncio.run(main())
