@@ -1,6 +1,6 @@
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from config import BOT_TOKEN
+from config.config import BOT_TOKEN, ADMIN_ID
 from handlers import register_handlers
 import logging
 
