@@ -1,0 +1,18 @@
+from aiogram import types
+from aiogram.dispatcher.middlewares import BaseMiddleware
+from aiogram.dispatcher.handler import CancelHandler
+from aiogram.utils.exceptions import Throttled
+
+class ThrottlingMiddleware(BaseMiddleware):
+    def init(self, rate_limit=1.0, key_prefix='antiflood_'):
+        super(ThrottlingMiddleware, self).init()
+        self.rate_limit = rate_limit
+        self.key_prefix = key_prefix
+
+    async def on_process_message(self, message: types.Message, data: dict):
+        dispatcher = self.dispatcher
+        try:
+            await dispatcher.throttle(self.key_prefix + 'message', rate=self.rate_limit)
+        except Throttled:
+            await message.reply("⏳ Не спамь, подожди немного.")
+            raise CancelHandler()
