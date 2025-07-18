@@ -365,23 +365,21 @@ async def history_command(message: types.Message):
         await message.answer("🕓 Твоя история:\n" + "\n".join(history[-5:]))
 
 # =============== ЗАПУСК БОТА ===============
-from flask import Flask
-from aiogram import executor
-import threading
+if __name__ == "__main__":
+    import threading
+    from flask import Flask
 
-app = Flask(__name__)
+    app = Flask(__name__)
 
-@app.route('/')
-def index():
-    return 'MediaKing is running!'
+    @app.route("/")
+    def index():
+        return "Бот работает!"
 
-def run_flask():
+    def run_bot():
+        import asyncio
+        asyncio.run(delete_webhook())  # <-- удалить webhook перед polling
+        executor.start_polling(dp, skip_updates=True)
+
+    thread = threading.Thread(target=run_bot)
+    thread.start()
     app.run(host="0.0.0.0", port=8080)
-
-if __name__ == '__main__':
-    # Flask в отдельном потоке
-    threading.Thread(target=run_flask).start()
-
-    # А тут уже bot polling — В ГЛАВНОМ потоке
-    print("🚀 Бот запущен...")
-    executor.start_polling(dp, skip_updates=True)
