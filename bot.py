@@ -16,7 +16,7 @@ import hmac
 import base64
 
 # === НАСТРОЙКИ ===
-API_TOKEN = "YOUR_BOT_TOKEN"
+API_TOKEN = "7661435901:AAFx8X7mY9wwW5FEeKofbLc9GddmX_tLlYk"
 ADMIN_ID = 1001788720
 ACR_HOST = "identify-ap-southeast-1.acrcloud.com"
 ACR_ACCESS_KEY = "e48f0d7b2af6ccad4015b26d57d75903"
