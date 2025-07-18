@@ -114,27 +114,33 @@ def get_downloads(user_id):
 def home():
     return "Бот работает!"
 
-    @dp.message_handler(commands=['start'])
-    async def start(message: types.Message):
+
+@dp.message_handler(commands=['start'])
+async def start(message: types.Message):
     add_or_update_user(message.from_user.id)
     lang = get_user_language(message.from_user.id)
     await message.answer(texts['start'][lang])
-    @dp.message_handler(commands=['help'])
-    async def help_cmd(message: types.Message):
+
+
+@dp.message_handler(commands=['help'])
+async def help_cmd(message: types.Message):
     lang = get_user_language(message.from_user.id)
     await message.answer(texts['help'][lang])
 
-    @dp.message_handler(commands=['about'])
-    async def about_cmd(message: types.Message):
+
+@dp.message_handler(commands=['about'])
+async def about_cmd(message: types.Message):
     lang = get_user_language(message.from_user.id)
     await message.answer(texts['about'][lang])
 
-    @dp.message_handler(commands=['languages'])
-    async def languages_cmd(message: types.Message):
+
+@dp.message_handler(commands=['languages'])
+async def languages_cmd(message: types.Message):
     lang = get_user_language(message.from_user.id)
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.add("🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch")
     await message.answer(texts['choose_lang'][lang], reply_markup=keyboard)
+
 
 @dp.message_handler(commands=['stats'])
 async def stats_cmd(message: types.Message):
@@ -142,11 +148,18 @@ async def stats_cmd(message: types.Message):
     count = get_downloads(message.from_user.id)
     await message.answer(f"{texts['stats'][lang]} {count}")
 
+
 @dp.message_handler(lambda m: m.text in ["🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch"])
 async def change_lang(message: types.Message):
-    lang_code = {'🇷🇺 Русский': 'ru', '🇺🇸 English': 'en', '🇺🇦 Українська': 'ua', '🇩🇪 Deutsch': 'de'}[message.text]
+    lang_code = {
+        '🇷🇺 Русский': 'ru',
+        '🇺🇸 English': 'en',
+        '🇺🇦 Українська': 'ua',
+        '🇩🇪 Deutsch': 'de'
+    }[message.text]
     set_user_language(message.from_user.id, lang_code)
     await message.answer("✅ Язык обновлен!", reply_markup=types.ReplyKeyboardRemove())
+
 
 @dp.message_handler()
 async def download_video(message: types.Message):
@@ -164,12 +177,14 @@ async def download_video(message: types.Message):
     except Exception as e:
         await message.answer(f"{texts['error'][lang]} {e}")
 
+
 def start_bot():
     asyncio.set_event_loop(asyncio.new_event_loop())
     from aiogram import executor
     executor.start_polling(dp, skip_updates=True)
 
-if name == "main":
+
+if __name__ == "__main__":
     t = Thread(target=start_bot)
     t.start()
     port = int(os.environ.get("PORT", 10000))
