@@ -1,0 +1,41 @@
+from aiogram.types import Message
+
+# Словарь языков
+LANGUAGES = {
+    "en": "English",
+    "ru": "Русский",
+    "uz": "O‘zbekcha",
+    "de": "Deutsch",
+    "uk": "Українська",
+    "tr": "Türkçe",
+    "kk": "Қазақша",
+    "ko": "한국어"
+}
+
+# Пример словаря переводов
+translations = {
+    "start": {
+        "en": "Welcome!",
+        "ru": "Добро пожаловать!",
+        "uz": "Xush kelibsiz!",
+        "de": "Willkommen!",
+        "uk": "Ласкаво просимо!",
+        "tr": "Hoş geldiniz!",
+        "kk": "Қош келдіңіз!",
+        "ko": "환영합니다!"
+    },
+    "help": {
+        "en": "This is a bot that helps you download videos.",
+        "ru": "Это бот, который помогает скачивать видео.",
+        "uz": "Bu bot sizga video yuklab olishga yordam beradi.",
+        "de": "Dieser Bot hilft Ihnen beim Herunterladen von Videos.",
+        "uk": "Цей бот допомагає завантажувати відео.",
+        "tr": "Bu bot, video indirmenize yardımcı olur.",
+        "kk": "Бұл бот бейнелерді жүктеуге көмектеседі.",
+        "ko": "이 봇은 비디오를 다운로드하는 데 도움이 됩니다."
+    }
+}
+
+# Получение перевода по ключу и языку
+def t(key: str, lang: str) -> str:
+    return translations.get(key, {}).get(lang, translations.get(key, {}).get("en", ""))
