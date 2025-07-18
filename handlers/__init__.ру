@@ -1,6 +1,16 @@
-from .start import register_start_handlers
-from .download import register_download_handlers
+from .start import register_start
+from .settings import register_settings
+from .feedback import register_feedback
+from .history import register_history
+from .downloads import register_download
+from .admin import register_admin
+from .statistics import register_statistics
 
 def register_handlers(dp):
-    register_start_handlers(dp)
-    register_download_handlers(dp)
+    register_start(dp)
+    register_settings(dp)
+    register_feedback(dp)
+    register_history(dp)
+    register_download(dp)
+    register_admin(dp)
+    register_statistics(dp)
