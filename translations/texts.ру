@@ -1,0 +1,26 @@
+texts = {
+    "ru": {
+        "start": "👑 Добро пожаловать в MediaKingBot!",
+    },
+    "en": {
+        "start": "👑 Welcome to MediaKingBot!",
+    },
+    "uz": {
+        "start": "👑 MediaKingBot ga xush kelibsiz!",
+    },
+    "kz": {
+        "start": "👑 MediaKingBot-қа қош келдіңіз!",
+    },
+    "de": {
+        "start": "👑 Willkommen bei MediaKingBot!",
+    },
+    "tr": {
+        "start": "👑 MediaKingBot'a hoş geldiniz!",
+    },
+    "ko": {
+        "start": "👑 MediaKingBot에 오신 것을 환영합니다!",
+    },
+    "ua": {
+        "start": "👑 Ласкаво просимо до MediaKingBot!",
+    }
+}
