@@ -4,7 +4,7 @@ import asyncio
 import json
 from threading import Thread
 from flask import Flask, request, abort
-from aiogram import types
+from aiogram.types import Update
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import InlineQueryResultArticle, InputTextMessageContent
 from aiogram.utils.markdown import escape_md
@@ -548,7 +548,7 @@ def index():
 def webhook():
     if request.headers.get("content-type") == "application/json":
         json_string = request.get_data().decode("utf-8")
-        update = types.Update.de_json(json_string)
+        update = Update.to_object(json.loads(json_string))
         asyncio.run(dp.process_update(update))
         return "ok"
     else:
