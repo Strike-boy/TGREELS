@@ -4,5 +4,4 @@ yt-dlp
 imageio-ffmpeg
 aiohttp
 requests
-sqlite3
 acrcloud
