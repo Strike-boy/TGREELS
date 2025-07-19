@@ -532,7 +532,7 @@ async def inline_query_handler(inline_query: types.InlineQuery):
 # === Flask сервер для Render / других хостингов ===
 from flask import Flask, request, abort
 
-WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}"
+WEBHOOK_PATH = f"/webhook/{TOKEN}"
 WEBHOOK_URL = f"https://{os.environ.get('RENDER_EXTERNAL_URL', 'your-domain.com')}{WEBHOOK_PATH}"
 
 app = Flask(__name__)
