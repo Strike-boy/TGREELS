@@ -302,10 +302,6 @@ async def cmd_feedback(message: types.Message):
 
 @dp.message_handler(commands=['history'])
 async def cmd_history(message: types.Message):
-    # ========== БЛОК 6.2.2: Команда /history для пользователя ==========
-
-@dp.message_handler(commands=['history'])
-async def user_history(message: types.Message):
     lang = get_user_language(message.from_user.id)
     args = message.get_args()
     
