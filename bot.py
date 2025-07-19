@@ -12,6 +12,12 @@ from aiogram.utils.executor import start_polling
 from aiogram.dispatcher.filters import Command
 import yt_dlp
 import acrcloud
+# Вверху bot.py (глобально)
+from collections import defaultdict
+import time
+
+user_last_request = defaultdict(lambda: 0)
+SPAM_TIMEOUT = 10  # секунд
 
 TOKEN = "7661435901:AAFx8X7mY9wwW5FEeKofbLc9GddmX_tLlYk"
 ADMIN_ID = 1001788720
@@ -302,7 +308,25 @@ async def cmd_history(message: types.Message):
 async def user_history(message: types.Message):
     lang = get_user_language(message.from_user.id)
     args = message.get_args()
+    
+@dp.message_handler(commands=["history"])
+async def show_history(message: types.Message):
+    lang = get_user_language(message.from_user.id)
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
+    c.execute("SELECT video_title, video_url, download_time FROM downloads WHERE user_id=? ORDER BY download_time DESC LIMIT 10", (message.from_user.id,))
+    results = c.fetchall()
+    conn.close()
 
+    if not results:
+        await message.reply(LANGUAGES[lang]["no_history"])
+        return
+
+    history_text = LANGUAGES[lang]["your_history"] + "\n\n"
+    for title, url, timestamp in results:
+        history_text += f"• <b>{title}</b>\n{url}\n🕒 {timestamp}\n\n"
+
+    await message.reply(history_text, parse_mode="HTML")
     # Если админ вводит ID
     if message.from_user.id == 1001788720 and args.isdigit():
         target_id = int(args)
@@ -479,4 +503,68 @@ async def show_feedbacks(message: types.Message):
         msg += f"<b>ID:</b> <code>{uid}</code>\n<b>Сообщение:</b> {fb}\n\n"
 
     await message.reply(msg, parse_mode="HTML")
+@dp.inline_handler()
+async def inline_query_handler(inline_query: types.InlineQuery):
+    query = inline_query.query.strip()
+    user_id = inline_query.from_user.id
 
+    if not (query.startswith("http://") or query.startswith("https://")):
+        return  # Пропускаем пустые или не-ссылки
+
+    try:
+        with yt_dlp.YoutubeDL({"quiet": True}) as ydl:
+            info = ydl.extract_info(query, download=False)
+            title = info.get("title", "Видео")
+            thumbnail = info.get("thumbnail")
+            url = query
+
+        result = types.InlineQueryResultArticle(
+            id=hash(url),
+            title="🎬 Скачать видео",
+            description=title,
+            thumb_url=thumbnail,
+            input_message_content=types.InputTextMessageContent(
+                message_text=url
+            )
+        )
+        await inline_query.answer([result], cache_time=1)
+
+    except Exception as e:
+        print(f"[INLINE ERROR]: {e}")
+        return
+# === Flask сервер для Render / других хостингов ===
+from flask import Flask, request, abort
+
+WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}"
+WEBHOOK_URL = f"https://{os.environ.get('RENDER_EXTERNAL_URL', 'your-domain.com')}{WEBHOOK_PATH}"
+
+app = Flask(name)
+
+@app.route('/')
+def index():
+    return 'MediaKing bot is running!', 200
+
+@app.route(WEBHOOK_PATH, methods=["POST"])
+def webhook():
+    if request.headers.get("content-type") == "application/json":
+        json_string = request.get_data().decode("utf-8")
+        update = types.Update.de_json(json_string)
+        asyncio.run(dp.process_update(update))
+        return "ok"
+    else:
+        abort(403)
+
+async def on_startup():
+    await bot.set_webhook(WEBHOOK_URL)
+    print("✅ Webhook установлен")
+
+async def on_shutdown():
+    await bot.delete_webhook()
+    await dp.storage.close()
+    await dp.storage.wait_closed()
+    print("🛑 Webhook удалён")
+
+if name == "main":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(on_startup())
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
