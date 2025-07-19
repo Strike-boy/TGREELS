@@ -2,3 +2,7 @@ aiogram==2.25.1
 Flask==2.3.2
 yt-dlp
 imageio-ffmpeg
+aiohttp
+requests
+sqlite3
+acrcloud
