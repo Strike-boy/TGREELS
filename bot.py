@@ -1,8 +1,10 @@
 import os
 import sqlite3
 import asyncio
+import json
 from threading import Thread
-from flask import Flask
+from flask import Flask, request, abort
+from aiogram import types
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import InlineQueryResultArticle, InputTextMessageContent
 from aiogram.utils.markdown import escape_md
