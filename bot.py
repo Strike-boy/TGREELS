@@ -350,7 +350,8 @@ async def show_history(message: types.Message):
     history = get_user_history(user_id)
     if not history:
         await message.answer(text + "\n(Empty)")
-    else: msg = f"{text}\n\n" + "\n".join([f"{i+1}. {item['type']} - {item['url']}" for i, item in enumerate(history)])
+    else:
+        msg = f"{text}\n\n" + "\n".join([f"{i+1}. {item['type']} - {item['url']}" for i, item in enumerate(history)])
         await message.answer(msg)
 
 # === Админ-команды ===
