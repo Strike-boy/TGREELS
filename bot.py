@@ -212,13 +212,13 @@ def main_keyboard(lang="en"):
     ).add(
         KeyboardButton("📤 Share Bot")
     )
-    === БЛОК 4: Команды /start /help /settings /feedback /history + админ-команды ===
+# === БЛОК 4: Команды /start /help /settings /feedback /history + админ-команды ===
 
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton 
 from aiogram.dispatcher.filters import Command 
 from aiogram import types
 
-=== Локализация текста ===
+# === Локализация текста ===
 
 translations = {
     'start': { 
@@ -271,7 +271,7 @@ translations = {
     }
 }
 
-=== Команды пользователя ===
+# === Команды пользователя ===
 
 @dp.message_handler(commands=['start'])
 async def cmd_start(message: types.Message):
@@ -357,7 +357,7 @@ async def show_history(message: types.Message):
     else: msg = f"{text}\n\n" + "\n".join([f"{i+1}. {item['type']} - {item['url']}" for i, item in enumerate(history)])
         await message.answer(msg)
 
-=== Админ-команды ===
+# === Админ-команды ===
 
 @dp.message_handler(commands=['stats'])
 async def cmd_stats(message: types.Message):
@@ -426,7 +426,7 @@ async def cmd_downloads(message: types.Message):
     if message.from_user.id == ADMIN_ID:
         await message.answer(f"Всего загрузок: {count_downloads()}")
 
-=== Кнопочная админ-панель ===
+# === Кнопочная админ-панель ===
 
 admin_panel = ReplyKeyboardMarkup(resize_keyboard=True)
 admin_panel.row("📊 Статистика", "🔍 Найти")
@@ -538,7 +538,7 @@ from flask import Flask, request, abort
 WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}"
 WEBHOOK_URL = f"https://{os.environ.get('RENDER_EXTERNAL_URL', 'your-domain.com')}{WEBHOOK_PATH}"
 
-app = Flask(name)
+app = Flask(__name__)
 
 @app.route('/')
 def index():
@@ -564,7 +564,7 @@ async def on_shutdown():
     await dp.storage.wait_closed()
     print("🛑 Webhook удалён")
 
-if name == "main":
+if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(on_startup())
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
