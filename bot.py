@@ -533,7 +533,7 @@ async def inline_query_handler(inline_query: types.InlineQuery):
 from flask import Flask, request, abort
 
 WEBHOOK_PATH = f"/webhook/{TOKEN}"
-WEBHOOK_URL = f"https://{os.environ.get('RENDER_EXTERNAL_URL', 'your-domain.com')}{WEBHOOK_PATH}"
+WEBHOOK_URL = f"('RENDER_EXTERNAL_URL', 'your-domain.com')}{WEBHOOK_PATH}"
 
 app = Flask(__name__)
 
