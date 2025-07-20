@@ -155,13 +155,27 @@ async def download_video(message: types.Message):
     lang = get_user_language(user_id)
     await message.answer(texts['downloading'][lang])
     try:
-        ydl_opts = {'outtmpl': 'video.%(ext)s', 'cookiefile': 'cookies.txt', 'cookiesyt.txt'}
+        # Выбор cookie файла по ссылке
+        if "youtube.com" in message.text or "youtu.be" in message.text:
+            cookie_file = "cookiesyt.txt"
+        else:
+            cookie_file = "cookies.txt"
+
+        ydl_opts = {
+            'outtmpl': 'video.%(ext)s',
+            'cookiefile': cookie_file,
+            'format': 'bestvideo+bestaudio/best'
+        }
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([message.text])
+        
         with open('video.mp4', 'rb') as video:
             await message.answer_video(video)
+
         os.remove('video.mp4')
         increment_downloads(user_id)
+
     except Exception as e:
         await message.answer(f"{texts['error'][lang]} {e}")
 
