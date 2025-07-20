@@ -64,6 +64,8 @@ def get_user_language(user_id: int) -> str:
     except Exception as e:
         print(f"[ERROR] get_user_language: {e}")
         return "en"
+
+
     # Поддерживаемые языки
 LANGUAGES = {
     "ru": "🇷🇺 Русский",
@@ -215,8 +217,10 @@ MESSAGES = {
 }
 
 # Главная клавиатура
-def main_keyboard(lang="en"):
-    return ReplyKeyboardMarkup(resize_keyboard=True).add(
+def get_main_keyboard(lang="en"):
+    btns = MESSAGES.get(lang, MESSAGES["en"])["buttons"]
+    return
+ReplyKeyboardMarkup(resize_keyboard=True).add(
         KeyboardButton("📥 Download Video"),
         KeyboardButton("🎵 Recognize Music")
     ).add(
