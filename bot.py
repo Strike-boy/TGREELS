@@ -647,13 +647,15 @@ def index():
 def webhook():
     if request.headers.get("content-type") == "application/json":
         json_string = request.get_data().decode("utf-8")
-        update = Update.to_object(json.loads(json_string))
+        update = Update.to_json(json.loads(json_string))
+        Bot.set_current(bot)
         asyncio.run(dp.process_update(update))
         return "ok"
     else:
         abort(403)
 
 async def on_startup():
+    Bot.set_current(bot)
     await bot.set_webhook(WEBHOOK_URL)
     print("✅ Webhook установлен")
 
