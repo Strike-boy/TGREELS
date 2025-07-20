@@ -43,6 +43,7 @@ TOKEN = "7661435901:AAFx8X7mY9wwW5FEeKofbLc9GddmX_tLlYk"
 ADMIN_ID = 1001788720
 
 bot = Bot(token=TOKEN)
+Bot.set_current(bot)
 dp = Dispatcher(bot)
 app = Flask(__name__)
 # Инициализация SQLite
@@ -653,7 +654,6 @@ def webhook():
         abort(403)
 
 async def on_startup():
-    Bot.set_current(bot)
     await bot.set_webhook(WEBHOOK_URL)
     print("✅ Webhook установлен")
 
