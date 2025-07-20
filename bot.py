@@ -57,20 +57,23 @@ init_db()
 # === Работа с БД ===
 
 def get_user_language(user_id):
-    conn = sqlite3.connect(DATABASE) cursor = conn.cursor()
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
     cursor.execute("SELECT language FROM users WHERE user_id = ?", (user_id,))
     row = cursor.fetchone()
     conn.close()
     return row[0] if row else 'en'
 
 def set_user_language(user_id, lang):
-    conn = sqlite3.connect(DATABASE) cursor = conn.cursor()
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
     cursor.execute("UPDATE users SET language = ? WHERE user_id = ?", (lang, user_id))
     conn.commit()
     conn.close()
 
 def add_user(user_id):
-    conn = sqlite3.connect(DATABASE) cursor = conn.cursor()
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
     cursor.execute("INSERT OR IGNORE INTO users (user_id) VALUES (?)", (user_id,))
     conn.commit()
     conn.close()
@@ -82,7 +85,8 @@ def increment_downloads(user_id):
     conn.close()
 
 def get_user_downloads(user_id):
-    conn = sqlite3.connect(DATABASE) cursor = conn.cursor()
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
     cursor.execute("SELECT downloads FROM users WHERE user_id = ?", (user_id,))
     row = cursor.fetchone()
     conn.close()
