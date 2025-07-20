@@ -21,6 +21,22 @@ import acrcloud
 from collections import defaultdict
 import time
 
+def get_language_keyboard():
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.add(
+        KeyboardButton("🇬🇧 English"), KeyboardButton("🇷🇺 Русский")
+    )
+    keyboard.add(
+        KeyboardButton("🇺🇦 Українська"), KeyboardButton("🇩🇪 Deutsch")
+    )
+    keyboard.add(
+        KeyboardButton("🇺🇿 O‘zbekcha"), KeyboardButton("🇰🇿 Қазақша")
+    )
+    keyboard.add(
+        KeyboardButton("🇰🇷 한국어"), KeyboardButton("🇹🇷 Türkçe")
+    )
+    return keyboard
+
 user_last_request = defaultdict(lambda: 0)
 SPAM_TIMEOUT = 10  # секунд
 
