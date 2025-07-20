@@ -53,8 +53,7 @@ def init_db():
     )''')
     conn.commit()
     conn.close()
-def get_user_language(user_id: int) ->
-str:
+def get_user_language(user_id: int) -> str:
     try:
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()
