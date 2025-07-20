@@ -79,7 +79,8 @@ def add_user(user_id):
     conn.close()
 
 def increment_downloads(user_id):
-    conn = sqlite3.connect(DATABASE) cursor = conn.cursor()
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
     cursor.execute("UPDATE users SET downloads = downloads + 1 WHERE user_id = ?", (user_id,))
     conn.commit()
     conn.close()
