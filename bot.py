@@ -155,7 +155,7 @@ async def download_video(message: types.Message):
     lang = get_user_language(user_id)
     await message.answer(texts['downloading'][lang])
     try:
-        ydl_opts = {'outtmpl': 'video.%(ext)s', 'cookiefile': 'cookies.txt'}
+        ydl_opts = {'outtmpl': 'video.%(ext)s', 'cookiefile': 'cookies.txt', 'cookiesyt.txt'}
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([message.text])
         with open('video.mp4', 'rb') as video:
