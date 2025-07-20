@@ -231,6 +231,12 @@ ReplyKeyboardMarkup(resize_keyboard=True).add(
     ).add(
         KeyboardButton("📤 Share Bot")
     )
+def get_main_keyboard(lang):
+    btns = MESSAGES.get(lang, MESSAGES["en"])["buttons"]
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    for btn in btns:
+        keyboard.add(KeyboardButton(btn))
+    return keyboard
 # === БЛОК 4: Команды /start /help /settings /feedback /history + админ-команды ===
 
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton 
