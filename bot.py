@@ -14,6 +14,7 @@ from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.deep_linking import get_start_link
 from aiogram.utils.executor import start_polling
 from aiogram.dispatcher.filters import Command
+from your_keyboard_module import get_language_keyboard
 import yt_dlp
 import acrcloud
 # Вверху bot.py (глобально)
