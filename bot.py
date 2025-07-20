@@ -653,7 +653,7 @@ def webhook():
         abort(403)
 
 async def on_startup():
-    bot.set_current(bot)
+    Bot.set_current(bot)
     await bot.set_webhook(WEBHOOK_URL)
     print("✅ Webhook установлен")
 
@@ -664,6 +664,5 @@ async def on_shutdown():
     print("🛑 Webhook удалён")
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(on_startup())
+    asyncio.run(on_startup())  # Это УСТАНАВЛИВАЕТ bot context
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
