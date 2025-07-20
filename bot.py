@@ -11,7 +11,7 @@ from datetime import datetime
 from collections import defaultdict
 import yt_dlp
 
-=== Настройки ===
+# === Настройки ===
 
 TOKEN = "7661435901:AAFx8X7mY9wwW5FEeKofbLc9GddmX_tLlYk"
 ADMIN_ID = 1001788720
@@ -20,19 +20,20 @@ WEBHOOK_PATH = f"/webhook/{TOKEN}"
 RENDER_DOMAIN = os.environ.get("RENDER_EXTERNAL_URL", "https://tgreels.onrender.com").rstrip("/")
 WEBHOOK_URL = f"{RENDER_DOMAIN}{WEBHOOK_PATH}"
 
-=== Инициализация ===
+# === Инициализация ===
 
 bot = Bot(token=TOKEN)
 Bot.set_current(bot)
 dp = Dispatcher(bot)
 app = Flask(__name__)
 
-=== Антиспам ===
+# === Антиспам ===
 
 user_last_request = defaultdict(lambda: 0)
 SPAM_TIMEOUT = 10
 
-=== Клавиатура языков ===
+
+# === Клавиатура языков ===
 
 def get_language_keyboard():
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -42,7 +43,7 @@ def get_language_keyboard():
     keyboard.add(KeyboardButton("🇰🇷 한국어"), KeyboardButton("🇹🇷 Türkçe"))
     return keyboard
 
-=== Инициализация базы данных ===
+# === Инициализация базы данных ===
 
 def init_db():
     conn = sqlite3.connect(DATABASE)
@@ -52,7 +53,7 @@ def init_db():
     conn.close()
 init_db()
 
-=== Работа с БД ===
+# === Работа с БД ===
 
 def get_user_language(user_id):
     conn = sqlite3.connect(DATABASE) cursor = conn.cursor()
@@ -86,7 +87,7 @@ def get_user_downloads(user_id):
     conn.close()
     return row[0] if row else 0
 
-=== Команды ===
+# === Команды ===
 
 @dp.message_handler(commands=['start'])
 async def cmd_start(message: types.Message):
@@ -116,7 +117,7 @@ async def lang_select(message: types.Message):
     set_user_language(message.from_user.id, lang_code)
     await message.answer("✅ Language updated!", reply_markup=ReplyKeyboardMarkup(resize_keyboard=True))
 
-=== Загрузка видео ===
+# === Загрузка видео ===
 
 @dp.message_handler(lambda m: m.text and m.text.startswith("http"))
 async def download_video(message: types.Message):
@@ -141,7 +142,7 @@ async def download_video(message: types.Message):
         except Exception as e:
             await message.answer(f"❌ Error: {e}")
 
-=== Webhook ===
+# === Webhook ===
 
 @app.route('/')
 def index():
