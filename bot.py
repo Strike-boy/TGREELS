@@ -637,6 +637,7 @@ def webhook():
         abort(403)
 
 async def on_startup():
+    bot.set_current(bot)
     await bot.set_webhook(WEBHOOK_URL)
     print("✅ Webhook установлен")
 
