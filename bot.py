@@ -5,6 +5,8 @@ import json
 from threading import Thread
 from flask import Flask, request, abort
 from aiogram.types import Update
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import InlineQueryResultArticle, InputTextMessageContent
 from aiogram.utils.markdown import escape_md
