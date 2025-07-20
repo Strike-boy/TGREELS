@@ -29,6 +29,18 @@ dp = Dispatcher(bot)
 app = Flask(__name__)
 # Инициализация SQLite
 def init_db():
+
+def get_user_language(user_id: int) -> str:
+  try:
+    conn = sqlite3.connect("database.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT language FROM users WHERE user_id = ?", (user_id,))
+        result = cursor.fetchone()
+        conn.close()
+        return result[0] if result else "en"
+    except Exception as e:
+        print(f"[ERROR] get_user_language: {e}")
+        return "en"
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
     c.execute("""CREATE TABLE IF NOT EXISTS users (
