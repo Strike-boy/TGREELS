@@ -1,177 +1,177 @@
+from aiogram import Bot, Dispatcher, types
+from threading import Thread
+from flask import Flask
 import os
+import yt_dlp
 import sqlite3
 import asyncio
-import json
-from flask import Flask, request, abort
-from aiogram import Bot, Dispatcher, types
-from aiogram.types import (Update, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton)
-from aiogram.dispatcher.filters import Command
-from aiogram.utils.executor import start_webhook
-from threading import Thread
-from datetime import datetime
-from collections import defaultdict
-import yt_dlp
 
-# === Настройки ===
-
-TOKEN = "7661435901:AAFx8X7mY9wwW5FEeKofbLc9GddmX_tLlYk"
-ADMIN_ID = 1001788720
-DATABASE = "users.db"
-WEBHOOK_PATH = f"/webhook/{TOKEN}"
-RENDER_DOMAIN = os.environ.get("RENDER_EXTERNAL_URL", "https://tgreels.onrender.com").rstrip("/")
-WEBHOOK_URL = f"{RENDER_DOMAIN}{WEBHOOK_PATH}"
-
-# === Инициализация ===
-
+TOKEN = os.environ.get("TOKEN")
 bot = Bot(token=TOKEN)
-Bot.set_current(bot)
 dp = Dispatcher(bot)
 app = Flask(__name__)
 
-# === Антиспам ===
-
-user_last_request = defaultdict(lambda: 0)
-SPAM_TIMEOUT = 10
-
-
-# === Клавиатура языков ===
-
-def get_language_keyboard():
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(KeyboardButton("🇬🇧 English"), KeyboardButton("🇷🇺 Русский"))
-    keyboard.add(KeyboardButton("🇺🇦 Українська"), KeyboardButton("🇩🇪 Deutsch"))
-    keyboard.add(KeyboardButton("🇺🇿 O‘zbekcha"), KeyboardButton("🇰🇿 Қазақша"))
-    keyboard.add(KeyboardButton("🇰🇷 한국어"), KeyboardButton("🇹🇷 Türkçe"))
-    return keyboard
-
-# === Инициализация базы данных ===
-
+# Инициализация базы
 def init_db():
-    conn = sqlite3.connect(DATABASE)
+    conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS users( user_id INTEGER PRIMARY KEY, language TEXT DEFAULT 'en', downloads INTEGER DEFAULT 0, banned INTEGER DEFAULT 0 ) ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            user_id INTEGER PRIMARY KEY,
+            language TEXT DEFAULT 'ru',
+            downloads INTEGER DEFAULT 0
+        )
+    ''')
     conn.commit()
     conn.close()
+
 init_db()
 
-# === Работа с БД ===
+# Словари переводов
+texts = {
+    'start': {
+        'ru': "👋 Привет! Отправь мне ссылку на видео, и я скачаю его для тебя!",
+        'en': "👋 Hi! Send me a video link, and I'll download it for you!",
+        'ua': "👋 Привіт! Надішли мені посилання на відео, і я його скачаю для тебе!",
+        'de': "👋 Hallo! Schick mir einen Videolink, und ich lade es für dich herunter!"
+    },
+    'help': {
+        'ru': "/start - начать\n/languages - сменить язык\n/stats - статистика\n/about - о боте",
+        'en': "/start - start\n/languages - change language\n/stats - statistics\n/about - about bot",
+        'ua': "/start - почати\n/languages - змінити мову\n/stats - статистика\n/about - про бота",
+        'de': "/start - starten\n/languages - Sprache ändern\n/stats - Statistik\n/about - über Bot"
+    },
+    'about': {
+        'ru': "🤖 Я бот MediaKing! Скачиваю Reels, TikTok, Shorts и многое другое.",
+        'en': "🤖 I'm MediaKing bot! I download Reels, TikTok, Shorts and more.",
+        'ua': "🤖 Я бот MediaKing! Завантажую Reels, TikTok, Shorts та інше.",
+        'de': "🤖 Ich bin der MediaKing Bot! Ich lade Reels, TikTok, Shorts und mehr herunter."
+    },
+    'choose_lang': {
+        'ru': "Выбери язык:",
+        'en': "Choose your language:",
+        'ua': "Оберіть мову:",
+        'de': "Wähle deine Sprache:"
+    },
+    'stats': {
+        'ru': "📊 Ты скачал видео: ",
+        'en': "📊 You've downloaded videos: ",
+        'ua': "📊 Ви завантажили відео: ",
+        'de': "📊 Du hast Videos heruntergeladen: "
+    },
+    'downloading': {
+        'ru': "⏳ Скачиваю видео, подожди немного...",
+        'en': "⏳ Downloading video, please wait...",
+        'ua': "⏳ Завантажую відео, зачекай...",
+        'de': "⏳ Lade Video herunter, bitte warten..."
+    },
+    'error': {
+        'ru': "⚠️ Упс! Ошибка: ",
+        'en': "⚠️ Oops! Error: ",
+        'ua': "⚠️ Ой! Помилка: ",
+        'de': "⚠️ Ups! Fehler: "
+    }
+}
 
 def get_user_language(user_id):
-    conn = sqlite3.connect(DATABASE)
+    conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     cursor.execute("SELECT language FROM users WHERE user_id = ?", (user_id,))
     row = cursor.fetchone()
     conn.close()
-    return row[0] if row else 'en'
+    return row[0] if row else 'ru'
 
 def set_user_language(user_id, lang):
-    conn = sqlite3.connect(DATABASE)
+    conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     cursor.execute("UPDATE users SET language = ? WHERE user_id = ?", (lang, user_id))
     conn.commit()
     conn.close()
 
-def add_user(user_id):
-    conn = sqlite3.connect(DATABASE)
+def add_or_update_user(user_id):
+    conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     cursor.execute("INSERT OR IGNORE INTO users (user_id) VALUES (?)", (user_id,))
     conn.commit()
     conn.close()
 
 def increment_downloads(user_id):
-    conn = sqlite3.connect(DATABASE)
+    conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     cursor.execute("UPDATE users SET downloads = downloads + 1 WHERE user_id = ?", (user_id,))
     conn.commit()
     conn.close()
 
-def get_user_downloads(user_id):
-    conn = sqlite3.connect(DATABASE)
+def get_downloads(user_id):
+    conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     cursor.execute("SELECT downloads FROM users WHERE user_id = ?", (user_id,))
     row = cursor.fetchone()
     conn.close()
     return row[0] if row else 0
 
-# === Команды ===
+@app.route("/")
+def home():
+    return "Бот работает!"
 
 @dp.message_handler(commands=['start'])
-async def cmd_start(message: types.Message):
-    user_id = message.from_user.id
-    add_user(user_id)
-    lang = get_user_language(user_id)
-    await message.answer("👋 Hi! Send me a video link to download.", reply_markup=get_language_keyboard())
-
-@dp.message_handler(commands=['settings'])
-async def cmd_settings(message: types.Message):
-    await message.answer("🌐 Choose language:", reply_markup=get_language_keyboard())
+async def start(message: types.Message):
+    add_or_update_user(message.from_user.id)
+    lang = get_user_language(message.from_user.id)
+    await message.answer(texts['start'][lang])
 
 @dp.message_handler(commands=['help'])
-async def cmd_help(message: types.Message):
+async def help_cmd(message: types.Message):
     lang = get_user_language(message.from_user.id)
-    await message.answer("/start - welcome\n/settings - language\n/help - info")
+    await message.answer(texts['help'][lang])
+
+@dp.message_handler(commands=['about'])
+async def about_cmd(message: types.Message):
+    lang = get_user_language(message.from_user.id)
+    await message.answer(texts['about'][lang])
+
+@dp.message_handler(commands=['languages'])
+async def languages_cmd(message: types.Message):
+    lang = get_user_language(message.from_user.id)
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.add("🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch")
+    await message.answer(texts['choose_lang'][lang], reply_markup=keyboard)
 
 @dp.message_handler(commands=['stats'])
-async def cmd_stats(message: types.Message):
-    count = get_user_downloads(message.from_user.id)
-    await message.answer(f"📊 You have downloaded {count} videos.")
+async def stats_cmd(message: types.Message):
+    lang = get_user_language(message.from_user.id)
+    count = get_downloads(message.from_user.id)
+    await message.answer(f"{texts['stats'][lang]} {count}")
 
-@dp.message_handler(lambda m: m.text in [ "🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch", "🇺🇿 O‘zbekcha", "🇰🇿 Қазақша", "🇰🇷 한국어", "🇹🇷 Türkçe" ])
-async def lang_select(message: types.Message):
-    mapping = { "🇷🇺 Русский": "ru", "🇺🇸 English": "en", "🇺🇦 Українська": "ua", "🇩🇪 Deutsch": "de", "🇺🇿 O‘zbekcha": "uz", "🇰🇿 Қазақша": "kz", "🇰🇷 한국어": "kr", "🇹🇷Türkçe": "tr" }
-    lang_code = mapping.get(message.text, "en")
+@dp.message_handler(lambda m: m.text in ["🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch"])
+async def change_lang(message: types.Message):
+    lang_code = {'🇷🇺 Русский': 'ru', '🇺🇸 English': 'en', '🇺🇦 Українська': 'ua', '🇩🇪 Deutsch': 'de'}[message.text]
     set_user_language(message.from_user.id, lang_code)
-    await message.answer("✅ Language updated!", reply_markup=ReplyKeyboardMarkup(resize_keyboard=True))
+    await message.answer("✅ Язык обновлен!", reply_markup=types.ReplyKeyboardRemove())
 
-# === Загрузка видео ===
-
-@dp.message_handler(lambda m: m.text and m.text.startswith("http"))
+@dp.message_handler()
 async def download_video(message: types.Message):
     user_id = message.from_user.id
-    if user_last_request[user_id] + SPAM_TIMEOUT > time.time():
-        return await message.answer("⏳ Please wait before trying again.")
-        user_last_request[user_id] = time.time()
-        lang = get_user_language(user_id)
-        await message.answer("⏬ Downloading, please wait...")
-        try:
-            ydl_opts = { 'outtmpl': 'video.%(ext)s', 'format': 'best', 'cookiefile': 'cookies.txt' }
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([message.text])
-            video_file = next((f for f in os.listdir('.') if f.startswith('video.')), None)
-            if video_file:
-                with open(video_file, 'rb') as video:
-                    await message.answer_video(video)
-                    os.remove(video_file)
-                    increment_downloads(user_id)
-            else:
-                await message.answer("❌ Error: file not found")
-        except Exception as e:
-            await message.answer(f"❌ Error: {e}")
+    lang = get_user_language(user_id)
+    await message.answer(texts['downloading'][lang])
+    try:
+        ydl_opts = {'outtmpl': 'video.%(ext)s', 'cookiefile': 'cookies.txt'}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([message.text])
+        with open('video.mp4', 'rb') as video:
+            await message.answer_video(video)
+        os.remove('video.mp4')
+        increment_downloads(user_id)
+    except Exception as e:
+        await message.answer(f"{texts['error'][lang]} {e}")
 
-# === Webhook ===
+def start_bot():
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    from aiogram import executor
+    executor.start_polling(dp, skip_updates=True)
 
-@app.route('/')
-def index():
-    return 'MediaKing bot is running!', 200
-
-@app.route(WEBHOOK_PATH, methods=['POST'])
-def webhook():
-    if request.headers.get('content-type') == 'application/json':
-        update = Update.to_object(request.get_json())
-        asyncio.run(dp.process_update(update))
-        return 'ok'
-    else:
-        abort(403)
-
-async def on_startup():
-    await bot.set_webhook(WEBHOOK_URL)
-    print("✅ Webhook установлен")
-
-async def on_shutdown():
-    await bot.delete_webhook()
-    print("🛑 Webhook удалён")
-
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(on_startup())
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+if __name__ == "__main__":
+    t = Thread(target=start_bot)
+    t.start()
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
