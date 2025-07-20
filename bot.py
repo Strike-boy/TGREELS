@@ -98,6 +98,13 @@ MESSAGES = {
         "download_started": "⏳ Download started...",
         "invalid_link": "⚠️ Invalid or unsupported link.",
         "too_fast": "⏱ Please wait a bit before sending again.",
+        "buttons": [
+            "📥 Download",
+            "🎧 Recognize Music",
+            "📄 History",
+            "⚙️ Settings",
+            "✉️ Feedback"
+        ]
     },
     "ru": {
         "start": "👋 Добро пожаловать в MediaKing!\nОтправь ссылку на видео или аудио.",
@@ -115,6 +122,13 @@ MESSAGES = {
         "download_started": "⏳ Начинаем загрузку...",
         "invalid_link": "⚠️ Неверная или неподдерживаемая ссылка.",
         "too_fast": "⏱ Пожалуйста, подождите немного перед следующей попыткой.",
+        "buttons": [
+            "📥 Скачать",
+            "🎧 Узнать музыку",
+            "📄 История",
+            "⚙️ Настройки",
+            "✉️ Отзыв"
+        ]
     },
     "uk": {
         "start": "👋 Ласкаво просимо до MediaKing!\nНадішли посилання на відео або аудіо.",
@@ -132,6 +146,13 @@ MESSAGES = {
         "download_started": "⏳ Завантаження розпочато...",
         "invalid_link": "⚠️ Неправильне або непідтримуване посилання.",
         "too_fast": "⏱ Будь ласка, зачекайте трохи перед наступною спробою.",
+        "buttons": [
+            "📥 Завантажити",
+            "🎧 Розпізнати музику",
+            "📄 Історія",
+            "⚙️ Налаштування",
+            "✉️ Відгук"
+        ]
     },
     "de": {
         "start": "👋 Willkommen bei MediaKing!\nSende einen Video- oder Audio-Link.",
@@ -148,6 +169,13 @@ MESSAGES = {
         "download_started": "⏳ Download wird gestartet...",
         "invalid_link": "⚠️ Ungültiger oder nicht unterstützter Link.",
         "too_fast": "⏱ Bitte warte ein wenig vor dem nächsten Versuch.",
+        "buttons": [
+            "📥 Herunterladen",
+            "🎧 Musik erkennen",
+            "📄 Verlauf",
+            "⚙️ Einstellungen",
+            "✉️ Feedback"
+        ]
     },
     "uz": {
         "start": "👋 MediaKing ga xush kelibsiz!\nVideo yoki audio havolasini yuboring.",
@@ -165,6 +193,13 @@ MESSAGES = {
         "download_started": "⏳ Yuklab olish boshlandi...",
         "invalid_link": "⚠️ Noto‘g‘ri yoki qo‘llab-quvvatlanmaydigan havola.",
         "too_fast": "⏱ Keyingi yuborishdan oldin biroz kuting.",
+        "buttons": [
+            "📥 Yuklab olish",
+            "🎧 Musiqani aniqlash",
+            "📄 Tarix",
+            "⚙️ Sozlamalar",
+            "✉️ Fikr bildirish"
+        ]
     },
     "kz": {
         "start": "👋 MediaKing ботына қош келдіңіз!\nБейне немесе аудио сілтемесін жіберіңіз.",
@@ -182,6 +217,13 @@ MESSAGES = {
         "download_started": "⏳ Жүктеу басталды...",
         "invalid_link": "⚠️ Қате немесе қолдау көрсетілмейтін сілтеме.",
         "too_fast": "⏱ Қайта жібермес бұрын біраз күтіңіз.",
+        "buttons": [
+            "📥 Жүктеу",
+            "🎧 Әнді тану",
+            "📄 Тарих",
+            "⚙️ Баптаулар",
+            "✉️ Пікір"
+        ]
     },
     "ko": {
         "start": "👋 MediaKing에 오신 것을 환영합니다!\n비디오 또는 오디오 링크를 보내주세요.",
@@ -199,6 +241,13 @@ MESSAGES = {
         "download_started": "⏳ 다운로드 시작...",
         "invalid_link": "⚠️ 잘못되었거나 지원되지 않는 링크입니다.",
         "too_fast": "⏱ 다시 보내기 전에 잠시 기다려주세요.",
+        "buttons": [
+            "📥 다운로드",
+            "🎧 음악 인식",
+            "📄 기록",
+            "⚙️ 설정",
+            "✉️ 피드백"
+        ]
     },
     "tr": {
         "start": "👋 MediaKing'e hoş geldiniz!\nBir video veya ses bağlantısı gönderin.",
@@ -215,6 +264,13 @@ MESSAGES = {
         "download_started": "⏳ İndirme başladı...",
         "invalid_link": "⚠️ Geçersiz veya desteklenmeyen bağlantı.",
         "too_fast": "⏱ Lütfen tekrar denemeden önce biraz bekleyin.",
+        "buttons": [
+            "📥 İndir",
+            "🎧 Müziği Tanı",
+            "📄 Geçmiş",
+            "⚙️ Ayarlar",
+            "✉️ Geri Bildirim"
+        ]
     }
 }
 
