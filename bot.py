@@ -370,10 +370,10 @@ async def change_lang(message: types.Message):
 async def download_video(message: types.Message):
     user_id = message.from_user.id
     lang = get_user_language(user_id)
-    text = message.text.strip()
     global broadcast_mode
     if broadcast_mode and user_id == ADMIN_ID:
         broadcast_mode = False
+        text = message.text.strip()
 
         conn = sqlite3.connect('users.db')
         cursor = conn.cursor()
