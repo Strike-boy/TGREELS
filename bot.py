@@ -303,22 +303,6 @@ async def downloads_cmd(message: types.Message):
         return
     await message.answer(f"📥 Всего скачиваний: {get_total_downloads()}")
 
-@dp.message_handler(commands=['broadcast'])
-async def broadcast(message: types.Message):
-    global broadcast_mode
-    if message.from_user.id != ADMIN_ID:
-        return
-        broadcast_mode = True
-    await message.answer("Введите текст рассылки:")
-
-    @dp.message_handler()
-    async def collect_broadcast(msg: types.Message):
-        conn = sqlite3.connect('users.db')
-        cursor = conn.cursor()
-        cursor.execute("SELECT user_id FROM users")
-        users = cursor.fetchall()
-        conn.close()
-
 @dp.message_handler(commands=['history'])
 async def cmd_history(message: types.Message):
     if message.from_user.id != ADMIN_ID:
