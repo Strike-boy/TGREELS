@@ -368,35 +368,36 @@ async def change_lang(message: types.Message):
 
 @dp.message_handler()
 async def download_video(message: types.Message):
-    global broadcast_mode
     user_id = message.from_user.id
     lang = get_user_language(user_id)
-    text = message.text.strip()
+    global broadcast_mode
+    if broadcast_mode and user_id == ADMIN_ID:
+        broadcast_mode = False
+        text = message.text.strip()
 
+        conn = sqlite3.connect('users.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT user_id FROM users")
+        users = cursor.fetchall()
+        conn.close()
+
+        sent = 0
+        for (uid,) in users:
+            try:
+                await bot.send_message(uid, text)
+                sent += 1
+            except:
+                continue
+
+        await message.answer(f"📤 Рассылка завершена. Отправлено: {sent}")
+        return
+        
     # ❗️ Игнорируем нажатия на админ-кнопки
     if text in ["📊 Статистика", "🔍 Найти", "🚫 Бан", "✅ Разбан", "🗂 История", "📢 Рассылка"]:
         return
 
     if is_banned(user_id):
         await message.answer("🚫 Вы были заблокированы.")
-        return
-
-    if broadcast_mode and user_id == ADMIN_ID:
-        broadcast_mode = False
-        await message.answer("✅ Рассылка началась...")
-        conn = sqlite3.connect('users.db')
-        cursor = conn.cursor()
-        cursor.execute("SELECT user_id FROM users")
-        users = cursor.fetchall()
-        conn.close()
-        success = 0
-        for u in users:
-            try:
-                await bot.send_message(u[0], text)
-                success += 1
-            except:
-                pass
-        await message.answer(f"📬 Сообщение отправлено {success} пользователям.")
         return
 
     await message.answer(texts['downloading'][lang])
