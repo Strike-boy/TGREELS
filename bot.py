@@ -303,6 +303,14 @@ async def downloads_cmd(message: types.Message):
         return
     await message.answer(f"📥 Всего скачиваний: {get_total_downloads()}")
 
+@dp.message_handler(commands=['broadcast'])
+async def cmd_broadcast(message: types.Message):
+    global broadcast_mode
+    if message.from_user.id != ADMIN_ID:
+        return
+    broadcast_mode = True
+    await message.answer("📢 Введите текст рассылки:")
+
 @dp.message_handler(commands=['history'])
 async def cmd_history(message: types.Message):
     if message.from_user.id != ADMIN_ID:
