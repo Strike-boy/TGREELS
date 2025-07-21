@@ -297,6 +297,11 @@ async def change_lang(message: types.Message):
 async def download_video(message: types.Message):
     user_id = message.from_user.id
     lang = get_user_language(user_id)
+    text = message.text.strip()
+
+    # ❗️ Игнорируем нажатия на админ-кнопки
+    if text in ["📊 Статистика", "🔍 Найти", "🚫 Бан", "✅ Разбан", "🗂 История", "📢 Рассылка"]:
+        return
 
     if is_banned(user_id):
         await message.answer("🚫 Вы были заблокированы.")
