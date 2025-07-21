@@ -369,7 +369,7 @@ async def download_video(message: types.Message):
     lang = get_user_language(user_id)
     text = message.text.strip()
     global broadcast_mode
-     if user_id == ADMIN_ID:
+    if user_id == ADMIN_ID:
         if text == "📊 Статистика":
             count = get_downloads(user_id)
             await message.answer(f"📊 Ты скачал видео:  {count}")
