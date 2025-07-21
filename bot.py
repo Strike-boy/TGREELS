@@ -19,7 +19,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
             language TEXT DEFAULT 'ru',
-            downloads INTEGER DEFAULT 0
+            downloads INTEGER DEFAULT 0,
             banned INTEGER DEFAULT 0
         )
     ''')
