@@ -43,43 +43,57 @@ texts = {
         'ru': "👋 Привет! Отправь мне ссылку на видео, и я скачаю его для тебя!",
         'en': "👋 Hi! Send me a video link, and I'll download it for you!",
         'ua': "👋 Привіт! Надішли мені посилання на відео, і я його скачаю для тебе!",
-        'de': "👋 Hallo! Schick mir einen Videolink, und ich lade es für dich herunter!"
+        'de': "👋 Hallo! Schick mir einen Videolink, und ich lade es für dich herunter!",
+        'uz': "👋 Salom! Menga video havolasini yuboring, men siz uchun yuklab beraman!",
+        'ko': "👋 안녕하세요! 영상 링크를 보내주시면 다운로드해 드릴게요!"
     },
     'help': {
         'ru': "/start - начать\n/languages - сменить язык\n/stats - статистика\n/about - о боте",
         'en': "/start - start\n/languages - change language\n/stats - statistics\n/about - about bot",
         'ua': "/start - почати\n/languages - змінити мову\n/stats - статистика\n/about - про бота",
-        'de': "/start - starten\n/languages - Sprache ändern\n/stats - Statistik\n/about - über Bot"
+        'de': "/start - starten\n/languages - Sprache ändern\n/stats - Statistik\n/about - über Bot",
+        'uz': "/start - boshlash\n/languages - tilni o‘zgartirish\n/stats - statistika\n/about - bot haqida",
+        'ko': "/start - 시작\n/languages - 언어 변경\n/stats - 통계\n/about - 봇 정보"
     },
     'about': {
         'ru': "🤖 Я бот MediaKing! Скачиваю Reels, TikTok, Shorts и многое другое.",
         'en': "🤖 I'm MediaKing bot! I download Reels, TikTok, Shorts and more.",
         'ua': "🤖 Я бот MediaKing! Завантажую Reels, TikTok, Shorts та інше.",
-        'de': "🤖 Ich bin der MediaKing Bot! Ich lade Reels, TikTok, Shorts und mehr herunter."
+        'de': "🤖 Ich bin der MediaKing Bot! Ich lade Reels, TikTok, Shorts und mehr herunter.",
+        'uz': "🤖 Men MediaKing botman! Reels, TikTok, Shorts va boshqa videolarni yuklayman.",
+        'ko': "🤖 저는 MediaKing 봇입니다! 릴스, 틱톡, 쇼츠 등 다양한 영상을 다운로드합니다."
     },
     'choose_lang': {
         'ru': "Выбери язык:",
         'en': "Choose your language:",
         'ua': "Оберіть мову:",
-        'de': "Wähle deine Sprache:"
+        'de': "Wähle deine Sprache:",
+        'uz': "Tilni tanlang:",
+        'ko': "언어를 선택하세요:"
     },
     'stats': {
         'ru': "📊 Ты скачал видео: ",
         'en': "📊 You've downloaded videos: ",
         'ua': "📊 Ви завантажили відео: ",
-        'de': "📊 Du hast Videos heruntergeladen: "
+        'de': "📊 Du hast Videos heruntergeladen: ",
+        'uz': "📊 Yuklab olingan videolar soni: ",
+        'ko': "📊 다운로드한 영상 수: "
     },
     'downloading': {
         'ru': "⏳ Скачиваю видео, подожди немного...",
         'en': "⏳ Downloading video, please wait...",
         'ua': "⏳ Завантажую відео, зачекай...",
-        'de': "⏳ Lade Video herunter, bitte warten..."
+        'de': "⏳ Lade Video herunter, bitte warten...",
+        'uz': "⏳ Video yuklanmoqda, biroz kuting...",
+        'ko': "⏳ 영상을 다운로드 중입니다. 잠시만 기다려 주세요..."
     },
     'error': {
         'ru': "⚠️ Упс! Ошибка: ",
         'en': "⚠️ Oops! Error: ",
         'ua': "⚠️ Ой! Помилка: ",
-        'de': "⚠️ Ups! Fehler: "
+        'de': "⚠️ Ups! Fehler: ",
+        'uz': "⚠️ Xatolik yuz berdi: ",
+        'ko': "⚠️ 오류 발생: "
     }
 }
 
@@ -182,7 +196,7 @@ async def about_cmd(message: types.Message):
 async def languages_cmd(message: types.Message):
     lang = get_user_language(message.from_user.id)
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add("🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch")
+    keyboard.add("🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch", "🇺🇿 Oʻzbek", "🇰🇷 한국어")
     await message.answer(texts['choose_lang'][lang], reply_markup=keyboard)
 
 @dp.message_handler(commands=['stats'])
@@ -343,9 +357,9 @@ async def cmd_history(message: types.Message):
 
     await message.answer(text)
 
-@dp.message_handler(lambda m: m.text in ["🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch"])
+@dp.message_handler(lambda m: m.text in ["🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch", "🇺🇿 Oʻzbek", "🇰🇷 한국어"])
 async def change_lang(message: types.Message):
-    lang_code = {'🇷🇺 Русский': 'ru', '🇺🇸 English': 'en', '🇺🇦 Українська': 'ua', '🇩🇪 Deutsch': 'de'}[message.text]
+    lang_code = {'🇷🇺 Русский': 'ru', '🇺🇸 English': 'en', '🇺🇦 Українська': 'ua', '🇩🇪 Deutsch': 'de', '🇺🇿 Oʻzbek': 'uz', '🇰🇷 한국어': 'ko'}[message.text]
     set_user_language(message.from_user.id, lang_code)
     await message.answer("✅ Язык обновлен!", reply_markup=types.ReplyKeyboardRemove())
 
