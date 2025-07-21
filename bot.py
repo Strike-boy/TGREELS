@@ -8,6 +8,7 @@ import asyncio
 
 TOKEN = os.environ.get("TOKEN")
 bot = Bot(token=TOKEN)
+broadcast_mode = False
 dp = Dispatcher(bot)
 app = Flask(__name__)
 
@@ -307,7 +308,7 @@ async def broadcast(message: types.Message):
     global broadcast_mode
     if message.from_user.id != ADMIN_ID:
         return
-        broadcast_mode = False
+        broadcast_mode = True
     await message.answer("Введите текст рассылки:")
 
     @dp.message_handler()
