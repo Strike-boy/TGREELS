@@ -319,15 +319,6 @@ async def broadcast(message: types.Message):
         users = cursor.fetchall()
         conn.close()
 
-        sent = 0
-        for user in users:
-            try:
-                await bot.send_message(user[0], msg.text)
-                sent += 1
-            except:
-                continue
-        await msg.answer(f"📢 Разослано {sent} сообщений.")
-
 @dp.message_handler(commands=['history'])
 async def cmd_history(message: types.Message):
     if message.from_user.id != ADMIN_ID:
@@ -370,10 +361,10 @@ async def change_lang(message: types.Message):
 async def download_video(message: types.Message):
     user_id = message.from_user.id
     lang = get_user_language(user_id)
+    text = message.text.strip()
     global broadcast_mode
     if broadcast_mode and user_id == ADMIN_ID:
         broadcast_mode = False
-        text = message.text.strip()
 
         conn = sqlite3.connect('users.db')
         cursor = conn.cursor()
