@@ -249,16 +249,36 @@ async def unban_cmd(message: types.Message):
     await message.answer("✅ Пользователь разбанен.")
 
 @dp.message_handler(commands=['history'])
-async def history_cmd(message: types.Message):
+async def cmd_history(message: types.Message):
     if message.from_user.id != ADMIN_ID:
         return
+
     parts = message.text.split()
     if len(parts) != 2:
         await message.answer("❌ Формат: /history <user_id>")
         return
-    uid = int(parts[1])
-    count = get_downloads(uid)
-    await message.answer(f"📥 Скачиваний у {uid}: {count}")
+
+    try:
+        target_id = int(parts[1])
+    except ValueError:
+        await message.answer("❌ Неверный user_id.")
+        return
+
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT url, timestamp FROM history WHERE user_id = ? ORDER BY timestamp DESC LIMIT 10", (target_id,))
+    rows = cursor.fetchall()
+    conn.close()
+
+    if not rows:
+        await message.answer("⚠️ У этого пользователя нет истории загрузок.")
+        return
+
+    text = f"🗂 Последние загрузки пользователя {target_id}:\n\n"
+    for url, ts in rows:
+        text += f"🔗 {url}\n🕒 {ts}\n\n"
+
+    await message.answer(text)
 
 @dp.message_handler(commands=['users'])
 async def list_users(message: types.Message):
@@ -284,8 +304,10 @@ async def downloads_cmd(message: types.Message):
 
 @dp.message_handler(commands=['broadcast'])
 async def broadcast(message: types.Message):
+    global broadcast_mode
     if message.from_user.id != ADMIN_ID:
         return
+        broadcast_mode = False
     await message.answer("Введите текст рассылки:")
 
     @dp.message_handler()
@@ -345,6 +367,7 @@ async def change_lang(message: types.Message):
 
 @dp.message_handler()
 async def download_video(message: types.Message):
+    global broadcast_mode
     user_id = message.from_user.id
     lang = get_user_language(user_id)
     text = message.text.strip()
@@ -355,6 +378,24 @@ async def download_video(message: types.Message):
 
     if is_banned(user_id):
         await message.answer("🚫 Вы были заблокированы.")
+        return
+
+    if broadcast_mode and user_id == ADMIN_ID:
+        broadcast_mode = False
+        await message.answer("✅ Рассылка началась...")
+        conn = sqlite3.connect('users.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT user_id FROM users")
+        users = cursor.fetchall()
+        conn.close()
+        success = 0
+        for u in users:
+            try:
+                await bot.send_message(u[0], text)
+                success += 1
+            except:
+                pass
+        await message.answer(f"📬 Сообщение отправлено {success} пользователям.")
         return
 
     await message.answer(texts['downloading'][lang])
