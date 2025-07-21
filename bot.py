@@ -260,10 +260,20 @@ async def history_cmd(message: types.Message):
     await message.answer(f"📥 Скачиваний у {uid}: {count}")
 
 @dp.message_handler(commands=['users'])
-async def users_cmd(message: types.Message):
+async def list_users(message: types.Message):
     if message.from_user.id != ADMIN_ID:
         return
-    await message.answer(f"👥 Всего пользователей: {get_total_users()}")
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id FROM users")
+    rows = cursor.fetchall()
+    conn.close()
+
+    if not rows:
+        await message.answer("❌ Пользователей пока нет.")
+    else:
+        user_list = "\n".join([f"👤 {row[0]}" for row in rows])
+        await message.answer(f"👥 Список пользователей:\n\n{user_list}")
 
 @dp.message_handler(commands=['downloads'])
 async def downloads_cmd(message: types.Message):
