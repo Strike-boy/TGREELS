@@ -20,6 +20,7 @@ def init_db():
             user_id INTEGER PRIMARY KEY,
             language TEXT DEFAULT 'ru',
             downloads INTEGER DEFAULT 0
+            banned INTEGER DEFAULT 0
         )
     ''')
     cursor.execute('''
