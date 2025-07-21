@@ -16,13 +16,20 @@ def init_db():
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     cursor.execute('''
-    CREATE TABLE IF NOT EXISTS users (
-        user_id INTEGER PRIMARY KEY,
-        language TEXT DEFAULT 'ru',
-        downloads INTEGER DEFAULT 0,
-        banned INTEGER DEFAULT 0
-    )
-''')
+        CREATE TABLE IF NOT EXISTS users (
+            user_id INTEGER PRIMARY KEY,
+            language TEXT DEFAULT 'ru',
+            downloads INTEGER DEFAULT 0
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            url TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
     conn.commit()
     conn.close()
 
@@ -287,6 +294,38 @@ async def broadcast(message: types.Message):
                 continue
         await msg.answer(f"📢 Разослано {sent} сообщений.")
 
+@dp.message_handler(commands=['history'])
+async def cmd_history(message: types.Message):
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    parts = message.text.split()
+    if len(parts) != 2:
+        await message.answer("❌ Используй: /history <user_id>")
+        return
+
+    try:
+        target_id = int(parts[1])
+    except ValueError:
+        await message.answer("❌ Неверный user_id.")
+        return
+
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT url, timestamp FROM history WHERE user_id = ? ORDER BY timestamp DESC LIMIT 10", (target_id,))
+    rows = cursor.fetchall()
+    conn.close()
+
+    if not rows:
+        await message.answer("⚠️ У этого пользователя нет истории.")
+        return
+
+    text = f"🗂 Последние загрузки пользователя {target_id}:\n\n"
+    for url, ts in rows:
+        text += f"🔗 {url}\n🕒 {ts}\n\n"
+
+    await message.answer(text)
+
 @dp.message_handler(lambda m: m.text in ["🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch"])
 async def change_lang(message: types.Message):
     lang_code = {'🇷🇺 Русский': 'ru', '🇺🇸 English': 'en', '🇺🇦 Українська': 'ua', '🇩🇪 Deutsch': 'de'}[message.text]
@@ -323,6 +362,13 @@ async def download_video(message: types.Message):
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([message.text])
+
+        # Запись в историю
+        conn = sqlite3.connect('users.db')
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO history (user_id, url) VALUES (?, ?)", (user_id, message.text))
+        conn.commit()
+        conn.close()
         
         with open('video.mp4', 'rb') as video:
             await message.answer_video(video)
