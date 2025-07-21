@@ -355,6 +355,33 @@ async def download_video(message: types.Message):
     lang = get_user_language(user_id)
     text = message.text.strip()
     global broadcast_mode
+     if user_id == ADMIN_ID:
+        if text == "📊 Статистика":
+            count = get_downloads(user_id)
+            await message.answer(f"📊 Ты скачал видео:  {count}")
+            return
+
+        elif text == "📢 Рассылка":
+            broadcast_mode = True
+            await message.answer("📢 Введите текст рассылки:")
+            return
+
+        elif text == "🗂 История":
+            await message.answer("🧠 Используй команду: /history <user_id>")
+            return
+
+        elif text == "🔍 Найти":
+            await message.answer("🔎 Введи: /find <user_id>")
+            return
+
+        elif text == "🚫 Бан":
+            await message.answer("🚫 Введи: /ban <user_id>")
+            return
+
+        elif text == "✅ Разбан":
+            await message.answer("✅ Введи: /unban <user_id>")
+            return
+            
     if broadcast_mode and user_id == ADMIN_ID:
         broadcast_mode = False
 
