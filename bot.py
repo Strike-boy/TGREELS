@@ -11,6 +11,7 @@ import datetime
 TOKEN = os.environ.get("TOKEN")
 bot = Bot(token=TOKEN)
 broadcast_mode = False
+restore_mode = False
 dp = Dispatcher(bot)
 app = Flask(__name__)
 
@@ -387,6 +388,40 @@ async def backup_db(message: types.Message):
             await message.answer_document(db_file, caption="📦 Резервная копия базы данных")
     except Exception as e:
         await message.answer(f"❌ Ошибка при резервном копировании: {e}")
+
+@dp.message_handler(commands=['restore'])
+async def restore_db_cmd(message: types.Message):
+    global restore_mode
+    if message.from_user.id != ADMIN_ID:
+        return
+    restore_mode = True
+    await message.answer("📥 Отправь .db файл для восстановления базы данных. ⚠️ Старые данные будут ЗАМЕНЕНЫ.")
+
+@dp.message_handler(content_types=types.ContentType.DOCUMENT)
+async def handle_document(message: types.Message):
+    global restore_mode
+    if message.from_user.id != ADMIN_ID or not restore_mode:
+        return
+
+    document = message.document
+    if not document.file_name.endswith('.db'):
+        await message.answer("❌ Пожалуйста, отправь файл с расширением .db")
+        restore_mode = False
+        return
+
+    try:
+        file = await bot.get_file(document.file_id)
+        file_path = file.file_path
+        file_bytes = await bot.download_file(file_path)
+
+        with open("users.db", "wb") as f:
+            f.write(file_bytes.read())
+
+        restore_mode = False
+        await message.answer("✅ База данных успешно восстановлена.")
+    except Exception as e:
+        restore_mode = False
+        await message.answer(f"❌ Ошибка при восстановлении: {e}")
 
 @dp.message_handler(lambda m: m.text in ["🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch", "🇺🇿 Oʻzbek", "🇰🇷 한국어"])
 async def change_lang(message: types.Message):
