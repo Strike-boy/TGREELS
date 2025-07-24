@@ -516,7 +516,7 @@ async def download_video(message: types.Message):
             filename = f"video.{ext}"
             if os.path.exists(filename):
                 with open(filename, 'rb') as video:
-                    await message.answer_video(video)
+                    await message.answer_video(video, caption="📥 Скачано через [MediaKing](https://t.me/instareelsss_bot)", parse_mode="Markdown")
                 os.remove(filename)
                 video_sent = True
                 break
