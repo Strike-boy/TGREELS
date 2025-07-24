@@ -501,11 +501,28 @@ async def download_video(message: types.Message):
         ydl_opts = {
             'outtmpl': 'video.%(ext)s',
             'cookiefile': cookie_file,
-            'format': 'bv*+ba/b'
+            'format': 'bv*+ba/b',
+            'merge_output_format': 'mp4',
+            'quiet': True,
+            'no_warnings': True,
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([message.text])
+
+        # Поиск и отправка видеофайла
+        video_sent = False
+        for ext in ['mp4', 'webm', 'mkv']:
+            filename = f"video.{ext}"
+            if os.path.exists(filename):
+                with open(filename, 'rb') as video:
+                    await message.answer_video(video)
+                os.remove(filename)
+                video_sent = True
+                break
+
+        if not video_sent:
+            raise FileNotFoundError("Файл не найден после скачивания.")
 
         # Запись в историю
         conn = sqlite3.connect('users.db')
@@ -513,11 +530,7 @@ async def download_video(message: types.Message):
         cursor.execute("INSERT INTO history (user_id, url) VALUES (?, ?)", (user_id, message.text))
         conn.commit()
         conn.close()
-        
-        with open('video.mp4', 'rb') as video:
-            await message.answer_video(video)
 
-        os.remove('video.mp4')
         increment_downloads(user_id)
 
     except Exception as e:
