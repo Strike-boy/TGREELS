@@ -501,7 +501,7 @@ async def download_video(message: types.Message):
         ydl_opts = {
             'outtmpl': 'video.%(ext)s',
             'cookiefile': cookie_file,
-            'format': 'bestvideo+bestaudio/best'
+            'format': 'bv*+ba/b'
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
