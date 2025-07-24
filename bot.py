@@ -531,7 +531,6 @@ def start_bot():
 if __name__ == "__main__":
     restore_latest_backup_if_missing()
     init_db()
-    backup_db()
     t = Thread(target=start_bot)
     t.start()
     port = int(os.environ.get("PORT", 10000))
