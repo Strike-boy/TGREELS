@@ -378,6 +378,16 @@ async def cmd_history(message: types.Message):
 
     await message.answer(text)
 
+@dp.message_handler(commands=['backup'])
+async def backup_db(message: types.Message):
+    if message.from_user.id != ADMIN_ID:
+        return
+    try:
+        with open("users.db", "rb") as db_file:
+            await message.answer_document(db_file, caption="📦 Резервная копия базы данных")
+    except Exception as e:
+        await message.answer(f"❌ Ошибка при резервном копировании: {e}")
+
 @dp.message_handler(lambda m: m.text in ["🇷🇺 Русский", "🇺🇸 English", "🇺🇦 Українська", "🇩🇪 Deutsch", "🇺🇿 Oʻzbek", "🇰🇷 한국어"])
 async def change_lang(message: types.Message):
     lang_code = {'🇷🇺 Русский': 'ru', '🇺🇸 English': 'en', '🇺🇦 Українська': 'ua', '🇩🇪 Deutsch': 'de', '🇺🇿 Oʻzbek': 'uz', '🇰🇷 한국어': 'ko'}[message.text]
