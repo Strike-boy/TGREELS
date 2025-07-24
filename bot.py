@@ -5,6 +5,8 @@ import os
 import yt_dlp
 import sqlite3
 import asyncio
+import shutil
+import datetime
 
 TOKEN = os.environ.get("TOKEN")
 bot = Bot(token=TOKEN)
@@ -171,6 +173,25 @@ def is_banned(user_id):
     row = cursor.fetchone()
     conn.close()
     return row and row[0] == 1
+
+def backup_db():
+    if os.path.exists("users.db"):
+        now = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        backup_filename = f"users_backup_{now}.db"
+        shutil.copyfile("users.db", backup_filename)
+        print(f"✅ Бэкап сохранён: {backup_filename}")
+    else:
+        print("❌ База данных не найдена для бэкапа.")
+
+def restore_latest_backup_if_missing():
+    if not os.path.exists("users.db"):
+        backups = [f for f in os.listdir() if f.startswith("users_backup_") and f.endswith(".db")]
+        if backups:
+            latest_backup = sorted(backups, reverse=True)[0]
+            shutil.copyfile(latest_backup, "users.db")
+            print(f"♻️ Восстановлено из: {latest_backup}")
+        else:
+            print("⚠️ Нет доступных резервных копий.")
 
 @app.route("/")
 def home():
@@ -463,6 +484,9 @@ def start_bot():
     executor.start_polling(dp, skip_updates=True)
 
 if __name__ == "__main__":
+    restore_latest_backup_if_missing()
+    init_db()
+    backup_db()
     t = Thread(target=start_bot)
     t.start()
     port = int(os.environ.get("PORT", 10000))
