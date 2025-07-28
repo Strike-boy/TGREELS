@@ -502,6 +502,7 @@ async def download_video(message: types.Message):
             'outtmpl': 'video.%(ext)s',
             'cookiefile': cookie_file,
             'format': 'bv*+ba/b',
+            'format': '18',
             'merge_output_format': 'mp4',
             'quiet': True,
             'no_warnings': True,
